@@ -28,6 +28,6 @@ Aumiao是一款针对于编程猫社区的爬虫(划掉)
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=zybqw/Aumiao&type=Date)](https://star-history.com/#zybqw/Aumiao&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=aurzex/Aumiao&type=Date)](https://star-history.com/#aurzex/Aumiao&Date)
 
 ## 感谢您的阅读！😉
