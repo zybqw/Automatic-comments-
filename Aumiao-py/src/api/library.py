@@ -189,7 +189,7 @@ class BookObtain:
             url="https://api.codemao.cn/api/sprite/list/all",
             method="get",
             params=params,
-        )  # 检查HTTP请求是否成功
+        )
         return response.json()
 
     # 获取指定图鉴详情

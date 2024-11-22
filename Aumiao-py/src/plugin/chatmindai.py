@@ -1,6 +1,6 @@
 import json
 
-import src.app.acquire as Acquire
+import src.base.acquire as Acquire
 
 version = "2024.7.14"
 
@@ -85,6 +85,8 @@ class Explore:
             url = "https://x.chatmindai.net/api/market/modelRank"
         elif method == "today":
             url = "https://x.chatmindai.net/api/market/modelHeatAddRank"
+        else:
+            url = ""
 
         response = self.acquire.send_request(
             url=url, method="post", data=json.dumps({}), headers=HEADERS

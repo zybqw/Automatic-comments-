@@ -69,7 +69,8 @@ class Obtain:
         works_limit: int = 4,
         sort: list[str] | str = ["-ordinal,-updated_at"],
     ):
-
+        _levels: str = ""
+        _sort: str = ""
         if isinstance(levels, list):
             _levels = ",".join(map(str, levels))
         if isinstance(sort, list):

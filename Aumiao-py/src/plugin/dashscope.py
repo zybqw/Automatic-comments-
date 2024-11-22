@@ -1,7 +1,7 @@
 import json
 
-import src.app.acquire as Acquire
-from src.app.decorator import singleton
+import src.base.acquire as Acquire
+from src.base.decorator import singleton
 
 version = "2024.8.6"
 

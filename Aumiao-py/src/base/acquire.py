@@ -1,5 +1,5 @@
 import time
-from typing import Literal, Mapping
+from typing import Literal
 
 import requests
 from requests.exceptions import ConnectionError, HTTPError, RequestException, Timeout
@@ -41,8 +41,8 @@ class CodeMaoClient:
             return response
         except (HTTPError, ConnectionError, Timeout, RequestException) as err:
             print(f"网络请求异常: {err}")
-            print(f"错误码: {response.status_code} 错误信息: {response.text}")
-            return response
+            print(f"错误码: {response.status_code} 错误信息: {response.text}")  # type: ignore
+            return response  # type: ignore
 
     def fetch_data(
         self,

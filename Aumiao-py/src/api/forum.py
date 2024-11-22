@@ -40,7 +40,6 @@ class Obtain:
         return replies
 
     # 获取回帖评论
-    # https://api.codemao.cn/web/forums/replies/1750952/comments?limit=10&page=1
     def get_reply_post_comments(
         self,
         post_id: int,
