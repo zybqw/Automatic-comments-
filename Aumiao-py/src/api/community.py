@@ -246,7 +246,7 @@ class Obtain:
         return response.json()
 
     # 获取推荐头图
-    def get_banner(
+    def get_banner_web(
         self,
         type: (
             None
@@ -256,8 +256,18 @@ class Obtain:
         ) = None,
     ):
         # 所有:不设置type,首页:OFFICIAL, 工作室页:WORK_SHOP, 素材页:MATERIAL_NORMAL, 右下角浮动区域:FLOAT_BANNER, 编程TV:CODE_TV,
+        params = {"type": type}
         response = self.acquire.send_request(
-            url=f"/web/banners/all?type={type}", method="get"
+            url="/web/banners/all", method="get", params=params
+        )
+        return response.json()
+
+    # TODO type值未定
+    # 获取推荐头图
+    def get_banner_nemo(self, type: int):
+        params = {"banner_type": type}
+        response = self.acquire.send_request(
+            url="/nemo/v2/home/banners", method="get", params=params
         )
         return response.json()
 
@@ -332,9 +342,16 @@ class Obtain:
         )
         return response.json()
 
+    # 获取KN课程
+    def get_kn_course(self):
+        response = self.acquire.send_request(
+            url="/creation-tools/v1/home/especially/course", method="get"
+        )
+        return response.json()
+
     # 获取KN公开课
     # https://api-creation.codemao.cn/neko/course/publish/list?limit=10&offset=0
-    def get_kn_course(self, limit=10):
+    def get_kn_publish_course(self, limit=10):
         params = {"limit": 10, "offset": 0}
         course = self.acquire.fetch_data(
             url="https://api-creation.codemao.cn/neko/course/publish/list",
@@ -362,6 +379,34 @@ class Obtain:
             method="get",
         )
         return response.json()
+
+    # 获取nemo端教程合集
+    def get_nemo_course_package(self, platform: int = 1):
+        params = {"limit": 50, "offset": 0, "platform": platform}
+        courses = self.acquire.fetch_data(
+            url="/creation-tools/v1/course/package/list",
+            params=params,
+            data_key="items",
+        )
+        return courses
+
+    # 获取nemo教程
+    def get_nemo_package(
+        self, course_package_id: int, limit: int = 50, offset: int = 0
+    ):
+        # course_package_id由get_nemo_course_package中获取
+        params = {
+            "course_package_id": course_package_id,
+            "limit": limit,
+            "offset": offset,
+        }
+        response = self.acquire.fetch_data(
+            url="/creation-tools/v1/course/list/search",
+            params=params,
+            data_key="course_page.items",
+            # 参数中total_key也可用total_course
+        )
+        return response
 
 
 class Motion:

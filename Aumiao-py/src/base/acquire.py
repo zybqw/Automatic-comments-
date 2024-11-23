@@ -52,7 +52,7 @@ class CodeMaoClient:
         limit: int | None = None,
         fetch_method: Literal["get", "post"] = "get",
         total_key: str = "total",
-        data_key: str = "item",
+        data_key: str | None = "item",
         method: Literal["offset", "page"] = "offset",
         args: dict[
             Literal["amount", "remove", "res_amount_key", "res_remove_key"], str

@@ -11,6 +11,157 @@ class Motion:
     def __init__(self) -> None:
         self.acquire = acquire.CodeMaoClient()
 
+    # 新建kitten作品
+    def create_work_kitten(
+        self,
+        name: str,
+        work_url: str,
+        preview: str,
+        version: str,
+        orientation: int = 1,
+        sample_id: str = "",
+        work_source_label: int = 1,
+        save_type: int = 2,
+    ):
+        data = json.dumps(
+            {
+                "name": name,
+                "work_url": work_url,
+                "preview": preview,
+                "orientation": orientation,
+                "sample_id": sample_id,
+                "version": version,
+                "work_source_label": work_source_label,
+                "save_type": save_type,
+            }
+        )
+        response = self.acquire.send_request(
+            url="https://api-creation.codemao.cn/kitten/r2/work",
+            method="post",
+            data=data,
+        )
+        return response.json()
+
+    # 发布kitten作品
+    def publish_work_kitten(
+        self,
+        work_id: int,
+        name: str,
+        description: str,
+        operation: str,
+        labels: list,
+        cover_url: str,
+        bcmc_url: str,
+        work_url: str,
+        fork_enable: Literal[0, 1],
+        if_default_cover: Literal[1, 2],
+        version: str,
+        cover_type: int = 1,
+        user_labels: list = [],
+    ):
+        # fork_enable: 0表示不开源，1表示开源
+        # if_default_cover: 1表示使用默认封面，2表示自定义封面
+        # description: 作品描述,operation:操作说明
+        data = json.dumps(
+            {
+                "name": name,
+                "description": description,
+                "operation": operation,
+                "labels": labels,
+                "cover_url": cover_url,
+                "bcmc_url": bcmc_url,
+                "work_url": work_url,
+                "fork_enable": fork_enable,
+                "if_default_cover": if_default_cover,
+                "version": version,
+                "cover_type": cover_type,
+                "user_labels": user_labels,
+            }
+        )
+        response = self.acquire.send_request(
+            url=f"https://api-creation.codemao.cn/kitten/r2/work/{work_id}/publish",
+            method="put",
+            data=data,
+        )
+        return response.status_code == 200
+
+    # 新建KN作品/更新作品信息
+    # 更新作品时会在更新之前运行该函数，之后再publish
+    def create_work_kn(
+        self,
+        name: str,
+        bcm_version: str,
+        preview_url: str,
+        work_url: str,
+        save_type: int = 1,
+        stage_type: int = 1,
+        work_classify: int = 0,
+        hardware_mode: int = 1,
+        blink_mode: str = "",
+        n_blocks: int = 0,
+        n_roles: int = 2,
+    ):
+        data = json.dumps(
+            {
+                "name": name,
+                "bcm_version": bcm_version,
+                "preview_url": preview_url,
+                "work_url": work_url,
+                "save_type": save_type,
+                "stage_type": stage_type,
+                "work_classify": work_classify,
+                "hardware_mode": hardware_mode,
+                "blink_mode": blink_mode,
+                "n_blocks": n_blocks,
+                "n_roles": n_roles,
+            }
+        )
+        response = self.acquire.send_request(
+            url="https://api-creation.codemao.cn/neko/works",
+            method="post",
+            data=data,
+        )
+        return response.json()
+
+    # 发布KN作品
+    def publish_work_kn(
+        self,
+        work_id: int,
+        name: str,
+        preview_url: str,
+        description: str,
+        operation: str,
+        fork_enable: Literal[0, 1, 2],
+        if_default_cover: Literal[1, 2],
+        bcmc_url: str,
+        work_url: str,
+        bcm_version: str,
+        cover_url: str = "",
+    ):
+        # fork_enable: 0表示不开源，1表示开源,2表示对粉丝开源
+        # if_default_cover: 1表示使用默认封面，2表示自定义封面
+        # description: 作品描述,operation:操作说明
+        data = json.dumps(
+            {
+                "name": name,
+                "preview_url": preview_url,
+                "description": description,
+                "operation": operation,
+                "fork_enable": fork_enable,
+                "if_default_cover": if_default_cover,
+                "bcmc_url": bcmc_url,
+                "work_url": work_url,
+                "bcm_version": bcm_version,
+                "cover_url": cover_url,
+            }
+        )
+        response = self.acquire.send_request(
+            url=f"https://api-creation.codemao.cn/neko/community/work/publish/{work_id}",
+            method="post",
+            data=data,
+        )
+        return response.status_code == 200
+
     # 关注的函数
     def follow_work(self, user_id: int, method: select = "post") -> bool:
         response = self.acquire.send_request(
@@ -169,96 +320,23 @@ class Motion:
         )
         return response.status_code == 200
 
-    # 获取回收站作品列表
-    def get_recycle_kitten_works(
-        self,
-        version_no: Literal["KITTEN_V3", "KITTEN_V4"],
-        limit: int = 30,
-        offset: int = 0,
-        work_status: str = "CYCLED",
-    ):
-        params = {
-            "limit": limit,
-            "offset": offset,
-            "version_no": version_no,
-            "work_status": work_status,
-        }
+    # 清空回收站kitten作品
+    def clear_recycle_kitten_works(self):
         response = self.acquire.send_request(
-            url="https://api-creation.codemao.cn/tiger/work/recycle/list",
-            method="get",
-            params=params,
-        )
-        return response.json()
-
-    # 获取回收站海龟编辑器作品列表
-    def get_recycle_wood_works(
-        self,
-        limit: int = 30,
-        offset: int = 0,
-        language_type: int = 0,
-        work_status: str = "CYCLED",
-        published_status: str = "undefined",
-    ):
-        params = {
-            "limit": limit,
-            "offset": offset,
-            "language_type": language_type,
-            "work_status": work_status,
-            "published_status": published_status,
-        }
-        response = self.acquire.send_request(
-            url="https://api-creation.codemao.cn/wood/comm/work/list",
-            method="get",
-            params=params,
-        )
-        return response.json()
-
-    # 获取代码岛回收站作品列表
-    def get_recycle_box_works(
-        self,
-        limit: int = 30,
-        offset: int = 0,
-        work_status: str = "CYCLED",
-    ):
-        params = {
-            "limit": limit,
-            "offset": offset,
-            "work_status": work_status,
-        }
-        response = self.acquire.send_request(
-            url="https://api-creation.codemao.cn/box/v2/work/list",
-            method="get",
-            params=params,
-        )
-        return response.json()
-
-    # 获取回收站小说列表
-    def get_recycle_fanfic_works(
-        self,
-        limit: int = 30,
-        offset: int = 0,
-        fiction_status: str = "CYCLED",
-    ):
-        params = {
-            "limit": limit,
-            "offset": offset,
-            "fiction_status": fiction_status,
-        }
-        response = self.acquire.send_request(
-            url="https://api.codemao.cn/web/fanfic/my/new",
-            method="get",
-            params=params,
-        )
-        return response.json()
-
-    # 删除回收站作品
-    def del_recycle_kitten_works(self):
-        response = self.acquire.send_request(
-            url="https://api-creation.codemao.cn/tiger/work/recycle/permanently",
+            url="https://api-creation.codemao.cn/work/user/works/permanently",
             method="delete",
         )
 
         return response.status_code == 204
+
+    #  清空回收站KN作品
+    def clear_recycle_kn_works(self):
+        response = self.acquire.send_request(
+            url="https://api-creation.codemao.cn/neko/works/permanently",
+            method="delete",
+        )
+
+        return response.status_code == 200
 
 
 class Obtain:
@@ -291,6 +369,31 @@ class Obtain:
     def get_kitten_work_detail(self, work_id: int):
         response = self.acquire.send_request(
             url=f"https://api-creation.codemao.cn/kitten/work/detail/{work_id}",
+            method="get",
+        )
+        return response.json()
+
+    # 获取KN作品信息
+    def get_kn_work_detail(self, work_id: int):
+        response = self.acquire.send_request(
+            url=f"https://api-creation.codemao.cn/neko/works/{work_id}",
+            method="get",
+        )
+        return response.json()
+
+    # 获取KN作品信息
+    # KN作品发布需要审核，发布后该接口不断定时获取数据，若接口数据返回正常，则表示发布成功，并将KN作品编辑页面的发布按钮改为更新
+    def get_kn_work_info(self, work_id: int):
+        response = self.acquire.send_request(
+            url=f"https://api-creation.codemao.cn/neko/community/work/detail/{work_id}",
+            method="get",
+        )
+        return response.json()
+
+    # 获取KN作品状态
+    def get_kn_work_status(self, work_id: int):
+        response = self.acquire.send_request(
+            url=f"https://api-creation.codemao.cn/neko/works/status/{work_id}",
             method="get",
         )
         return response.json()
@@ -341,6 +444,14 @@ class Obtain:
     def get_kitten_default_cover(self):
         response = self.acquire.send_request(
             url="https://api-creation.codemao.cn/kitten/work/cover/defaultCovers",
+            method="get",
+        )
+        return response.json()
+
+    # TODO 功能未知
+    def get_works_recent_cover(self, work_id: int):
+        response = self.acquire.send_request(
+            url=f"https://api-creation.codemao.cn/kitten/work/cover/{work_id}/recentCovers",
             method="get",
         )
         return response.json()
@@ -455,6 +566,15 @@ class Obtain:
         )
         return list
 
+    # TODO 功能存疑
+    # 获取kitten作品合作者
+    def get_collaboration(self, work_id: int):
+        response = self.acquire.send_request(
+            url=f"https://api-creation.codemao.cn/collaboration/user/{work_id}",
+            method="get",
+        )
+        return response.json()
+
     # 获取作品再创作情况_web端
     def get_recreate_info_web(self, work_id: int):
         response = self.acquire.send_request(
@@ -468,5 +588,170 @@ class Obtain:
         response = self.acquire.send_request(
             url=f"/nemo/v2/works/root/{work_id}",
             method="get",
+        )
+        return response.json()
+
+    # 获取KN作品历史版本
+    def get_works_kn_archive(self, work_id: int):
+        response = self.acquire.send_request(
+            url=f"https://api-creation.codemao.cn/neko/works/archive/{work_id}",
+            method="get",
+        )
+        return response
+
+    # 获取回收站作品列表
+    def get_recycle_kitten_works(
+        self,
+        version_no: Literal["KITTEN_V3", "KITTEN_V4"],
+        work_status: str = "CYCLED",
+    ):
+        params = {
+            "limit": 30,
+            "offset": 0,
+            "version_no": version_no,
+            "work_status": work_status,
+        }
+        works = self.acquire.fetch_data(
+            url="https://api-creation.codemao.cn/tiger/work/recycle/list",
+            data_key="items",
+            params=params,
+        )
+        return works
+
+    # 获取回收站海龟编辑器作品列表
+    def get_recycle_wood_works(
+        self,
+        language_type: int = 0,
+        work_status: str = "CYCLED",
+        published_status: str = "undefined",
+    ):
+        params = {
+            "limit": 30,
+            "offset": 0,
+            "language_type": language_type,
+            "work_status": work_status,
+            "published_status": published_status,
+        }
+        works = self.acquire.fetch_data(
+            url="https://api-creation.codemao.cn/wood/comm/work/list",
+            params=params,
+            data_key="items",
+        )
+        return works
+
+    # 获取代码岛回收站作品列表
+    def get_recycle_box_works(
+        self,
+        work_status: str = "CYCLED",
+    ):
+        params = {
+            "limit": 30,
+            "offset": 0,
+            "work_status": work_status,
+        }
+        works = self.acquire.fetch_data(
+            url="https://api-creation.codemao.cn/box/v2/work/list",
+            params=params,
+        )
+        return works
+
+    # 获取回收站小说列表
+    def get_recycle_fanfic_works(
+        self,
+        fiction_status: str = "CYCLED",
+    ):
+        params = {
+            "limit": 30,
+            "offset": 0,
+            "fiction_status": fiction_status,
+        }
+        fanfic = self.acquire.fetch_data(
+            url="https://api.codemao.cn/web/fanfic/my/new",
+            params=params,
+            data_key="items",
+        )
+        return fanfic
+
+    # 获取回收站KN作品列表
+    def get_recycle_kn_works(
+        self,
+        name: str = "",
+        work_business_classify: int = 1,
+    ):
+        params = {
+            "name": name,
+            "limit": 24,
+            "offset": 0,
+            "status": -99,
+            "work_business_classify": work_business_classify,
+        }
+        works = self.acquire.fetch_data(
+            url="https://api-creation.codemao.cn/neko/works/v2/list/user",
+            params=params,
+            data_key="items",
+        )
+        return works
+
+    # 按关键词搜索KN全部作品
+    def search_works_kn(
+        self, name: str, status: int = 1, work_business_classify: int = 1
+    ):
+        params = {
+            "name": name,
+            "limit": 24,
+            "offset": 0,
+            "status": status,
+            "work_business_classify": work_business_classify,
+        }
+        works = self.acquire.fetch_data(
+            url="https://api-creation.codemao.cn/neko/works/v2/list/user",
+            params=params,
+            data_key="items",
+        )
+        return works
+
+    # 按关键词搜索KN已发布作品
+    def search_works_kn_published(self, name: str, work_business_classify: int = 1):
+        params = {
+            "name": name,
+            "limit": 24,
+            "offset": 0,
+            "work_business_classify": work_business_classify,
+        }
+        works = self.acquire.fetch_data(
+            url="https://api-creation.codemao.cn/neko/works/list/user/published",
+            params=params,
+            data_key="items",
+        )
+        return works
+
+    # TODO 待确认
+    # 获取KN作品变量列表
+    def get_works_kn_variables(self, work_id: int):
+        response = self.acquire.send_request(
+            url=f"https://socketcv.codemao.cn/neko/cv/list/variables/{work_id}",
+            method="get",
+        )
+        return response.json()
+
+    # 获取积木/角色背包列表
+    def get_block_character_package(
+        self, types: Literal["block", "character"], limit: int = 16, offset: int = 0
+    ):
+        if types == "block":
+            type = 1
+        elif types == "character":
+            type = 0
+        # type 1 角色背包 0 积木背包
+        # limit 获取积木默认16个,角色默认20个
+        params = {
+            "type": type,
+            "limit": limit,
+            "offset": offset,
+        }
+        response = self.acquire.send_request(
+            url="https://api-creation.codemao.cn/neko/package/list",
+            method="get",
+            params=params,
         )
         return response.json()

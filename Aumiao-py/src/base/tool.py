@@ -45,7 +45,9 @@ class CodeMaoProcess:
         return StyleTime
 
     # 通过点分隔的键路径从嵌套字典中获取值
-    def process_path(self, data: dict, path: str) -> dict:
+    def process_path(self, data: dict, path: str | None) -> dict:
+        if path is None:
+            return data
         keys = path.split(".")
         value = data
         for key in keys:

@@ -60,9 +60,9 @@ class Obtain:
         return response.json()
 
     # 获取账户信息
-    def get_data_profile(self):
+    def get_data_profile(self, method: Literal["web", "app"]):
         response = self.acquire.send_request(
-            method="get", url="/tiger/v3/web/accounts/profile"
+            method="get", url=f"/tiger/v3/{method}/accounts/profile"
         )
         return response.json()
 
@@ -117,19 +117,64 @@ class Obtain:
         )
         return works
 
-    # 获取用户KN或nemo作品
-    def get_data_works_nemo_kn(
-        self, method: Literal["published", "total"], type: Literal["KN", "nemo"]
+    # 搜索用户作品
+    def search_data_works_nemo(
+        self, query: str, query_type: str = "name", page: int = 1, limit: int = 10
+    ):
+        params = {
+            "query": query,
+            "query_type": query_type,
+            "page": page,
+            "limit": limit,
+        }
+        response = self.acquire.send_request(
+            url="tiger/nemo/user/works/search", method="get", params=params
+        )
+        return response.json()
+
+    # 获取用户云端作品
+    def get_data_works_cloud(
+        self, type: Literal["nemo", "kitten"], limit: int = 10, offset: int = 0
+    ):
+        if type == "nemo":
+            work_type = 8
+        elif type == "kitten":
+            work_type = 1
+        params = {"limit": limit, "offset": offset, "work_type": work_type}
+        response = self.acquire.send_request(
+            url="/creation-tools/v1/works/list/user", params=params, method="get"
+        )
+        return response
+
+    # 获取用户nemo作品
+    def get_data_works_nemo(self, method=Literal["published"]):
+        params = {"limit": 15, "offset": 0}
+        works = self.acquire.fetch_data(
+            url=f"/nemo/v2/works/list/user/{method}",
+            params=params,
+            data_key="items",
+        )
+        return works
+
+    # 获取用户KN作品
+    def get_data_works_kn(
+        self,
+        method: Literal["published", "total"],
+        extra_params: (
+            dict[
+                Literal["name", "limit", "offset", "status", "work_business_classify"],
+                str | int,
+            ]
+            | None
+        ) = None,
     ):
         # kn获取全部作品示例链接:https://api-creation.codemao.cn/neko/works/v2/list/user?name=&limit=24&offset=0&status=1&work_business_classify=1
-        extra_url = "nemo" if type == "nemo" else "neko"
         if method == "published":
-            url = (
-                f"https://api-creation.codemao.cn/{extra_url}/works/list/user/published"
-            )
+            url = "https://api-creation.codemao.cn/neko/works/list/user/published"
         elif method == "total":
-            url = f"https://api-creation.codemao.cn/{extra_url}/works/v2/list/user"
+            url = "https://api-creation.codemao.cn/neko/works/v2/list/user"
         params = {"offset": 0, "limit": 15}
+        params.update(extra_params or {})  # type: ignore
         works = self.acquire.fetch_data(url=url, params=params, data_key="items")
         return works
 
