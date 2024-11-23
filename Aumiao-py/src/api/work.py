@@ -295,10 +295,20 @@ class Motion:
         return response.status_code == 200
 
     # 删除一个未发布的作品
-    def del_work(self, work_id: int) -> bool:
+    def delete_temp_work_kitten(self, work_id: int) -> bool:
         response = self.acquire.send_request(
             url=f"https://api-creation.codemao.cn/kitten/common/work/{work_id}/temporarily",
             method="delete",
+        )
+        return response.status_code == 200
+
+    # 删除一个已发布的作品
+    def delete_temp_work_kn(self, work_id: int):
+        params = {"force": 1}
+        response = self.acquire.send_request(
+            url=f"https://api-creation.codemao.cn/neko/works/{work_id}",
+            method="delete",
+            params=params,
         )
         return response.status_code == 200
 
@@ -317,6 +327,14 @@ class Motion:
             url=f"/web/works/r2/unpublish/{work_id}",
             method="put",
             data=json.dumps({}),
+        )
+        return response.status_code == 200
+
+    # 取消发布一个已发布的KN作品
+    def unpublish_kn_work(self, work_id: int) -> bool:
+        response = self.acquire.send_request(
+            url=f"https://api-creation.codemao.cn/neko/community/work/unpublish/{work_id}",
+            method="put",
         )
         return response.status_code == 200
 
