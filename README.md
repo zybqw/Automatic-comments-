@@ -6,7 +6,7 @@
 
 [![猫鱼a](https://img.shields.io/badge/猫鱼a-66ccff)](https://github.com/zybqw/)
 [![Nomen](https://img.shields.io/badge/Nomen-66ccff)](https://github.com/helloyork/)
-[![满月叶](https://img.shields.io/badge/满月叶-66ccff)](https://github.com/MoonLeeeaf/)
+<!-- [![满月叶](https://img.shields.io/badge/满月叶-66ccff)](https://github.com/MoonLeeeaf/) -->
 [![Python Badge](https://img.shields.io/badge/-Python-66ccff?style=flat&logo=Python&logoColor=white)](https://www.python.org/)
 [![Node.js Badge](https://img.shields.io/badge/-Node.js-66ccff?style=flat&logo=nodedotjs&logoColor=white)](https://nodejs.org/zh-cn)
 
@@ -24,10 +24,10 @@ Aumiao是一款针对于编程猫社区的爬虫(划掉)
 
 - [Aumiao-py (主)](Aumiao-py/readme.md)
 - [Aumiao-ts](Aumiao-ts/README.md)
-- [Aumiao-js](Aumiao-js/readme.md)
+<!-- - [Aumiao-js](Aumiao-js/readme.md) -->
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=zybqw/Aumiao&type=Date)](https://star-history.com/#zybqw/Aumiao&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=aurzex/Aumiao&type=Date)](https://star-history.com/#zybqw/Aumiao&Date)
 
 ## 感谢您的阅读！😉
