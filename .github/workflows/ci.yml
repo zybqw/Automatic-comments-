@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  determine_changes:
+    name: "Determine changes"
+    runs-on: ubuntu-latest
+    outputs:
+      # Flag that is raised when any code is changed
+      code: ${{ steps.changed.outputs.code_any_changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: tj-actions/changed-files@v45
+        id: changed
+        with:
+          files_yaml: |
+            code:
+              - "**/*"
+              - "!docs/**/*"
+              - "!**/*.md"
+              - "!bin/**"
+              - "!assets/**"
+              - "!video/**"
+              - "!project/**"
+              - "!data/**"
+              # Generated markdown and JSON files are checked during test runs
+              - "uv.schema.json"
+  lint:
+    timeout-minutes: 10
+    name: "lint"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "${{ env.PYTHON_VERSION }}"
+
+      - name: "Install Rustfmt"
+        run: rustup component add rustfmt
+
+      - name: "Install uv"
+        uses: astral-sh/setup-uv@v4
+
+      - name: "rustfmt"
+        run: cargo fmt --all --check
+
+      - name: "Prettier"
+        run: |
+          npx prettier --check "**/*.{json5,yaml,yml}"
+          npx prettier --prose-wrap always --check "**/*.md"
+
+      - name: "README check"
+        run: python scripts/transform_readme.py --target pypi
+
+      - name: "Python format"
+        run: uvx ruff format --diff .
+
+      - name: "Python lint"
+        run: uvx ruff check .
+
+      - name: "Python type check"
+        run: uvx mypy
+
+      - name: "Validate project metadata"
+        run: uvx --from 'validate-pyproject[all,store]' validate-pyproject pyproject.toml
+
+      - name: "Lint shell scripts"
+        uses: ludeeus/action-shellcheck@2.0.0
+        env:
+          # renovate: datasource=github-tags depName=koalaman/shellcheck
+          SHELLCHECK_VERSION: "v0.10.0"
+          SHELLCHECK_OPTS: --shell bash
+        with:
+          version: ${{ env.SHELLCHECK_VERSION }}
+          severity: style
+          check_together: "yes"
+
+  typos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: crate-ci/typos@master
