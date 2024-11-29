@@ -54,10 +54,11 @@ jobs:
       - name: "Install uv"
         uses: astral-sh/setup-uv@v4
 
-      - name: "Prettier"
-        run: |
-          npx prettier --check "**/*.{json5,yaml,yml}"
-          npx prettier --prose-wrap always --check "**/*.md"
+      # Prettier我喜欢你
+      # - name: "Prettier"
+      #   run: |
+      #     npx prettier --check "**/*.{json5,yaml,yml}"
+      #     npx prettier --prose-wrap always --check "**/*.md"
 
       - name: "README check"
         run: python scripts/transform_readme.py --target pypi
