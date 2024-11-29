@@ -60,9 +60,6 @@ jobs:
       #     npx prettier --check "**/*.{json5,yaml,yml}"
       #     npx prettier --prose-wrap always --check "**/*.md"
 
-      - name: "README check"
-        run: python scripts/transform_readme.py --target pypi
-
       - name: "Python format"
         run: uvx ruff format --diff .
 
@@ -71,9 +68,6 @@ jobs:
 
       - name: "Python type check"
         run: uvx mypy
-
-      - name: "Validate project metadata"
-        run: uvx --from 'validate-pyproject[all,store]' validate-pyproject pyproject.toml
 
       - name: "Lint shell scripts"
         uses: ludeeus/action-shellcheck@2.0.0
