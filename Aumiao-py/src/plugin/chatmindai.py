@@ -35,7 +35,7 @@ class User:
         )
         return response.json()
 
-    def get_detials(self):
+    def get_details(self):
         response = self.acquire.send_request(
             url="https://x.chatmindai.net/api/user/getUserSelfBigData",
             method="post",

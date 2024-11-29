@@ -61,7 +61,6 @@ class Motion:
 
 
 class Obtain:
-
     def __init__(self) -> None:
         self.acquire = Acquire.CodeMaoClient()
 

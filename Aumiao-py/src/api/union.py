@@ -11,7 +11,6 @@ from . import work as work
 
 
 class Union:
-
     def __init__(self) -> None:
         self.acquire = acquire.CodeMaoClient()
         self.user_obtain = user.Obtain()
@@ -31,7 +30,8 @@ class Union:
         for works_item in works_list:
             work_id = works_item["id"]
             comments: list = self.get_comments_detail(
-                work_id=works_item["id"], method="comments"  # type: ignore
+                work_id=works_item["id"],  # type: ignore
+                method="comments",
             )
             for comments_item in comments:
                 comment_id = comments_item["id"]
@@ -46,7 +46,8 @@ class Union:
                         )
                     )
                     response = self.work_motion.del_comment_work(
-                        work_id=work_id, comment_id=comment_id  # type: ignore
+                        work_id=work_id,  # type: ignore
+                        comment_id=comment_id,
                     )
                     print("*" * 50)
                     if not response:

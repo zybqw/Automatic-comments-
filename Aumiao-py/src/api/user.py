@@ -9,7 +9,7 @@ class Obtain:
         self.acquire = Acquire.CodeMaoClient()
 
     # 获取某人账号信息
-    def get_user_detials(self, user_id: str) -> dict:
+    def get_user_details(self, user_id: str) -> dict:
         response = self.acquire.send_request(
             method="get", url=f"/api/user/info/detail/{user_id}"
         )
@@ -335,7 +335,6 @@ class Obtain:
 
 
 class Motion:
-
     def __init__(self) -> None:
         self.acquire = Acquire.CodeMaoClient()
 

@@ -142,7 +142,7 @@ class Login:
         identity,
         timestamp: int,
         cookies_ca=None,
-        scence=None,
+        scene=None,
         pid: str = "65edCTyg",
         deviced=None,
     ):
@@ -152,7 +152,7 @@ class Login:
         data = json.dumps(
             {
                 "identity": identity,
-                "scene": scence,
+                "scene": scene,
                 "pid": pid,
                 "deviceId": deviced,
                 "timestamp": timestamp,

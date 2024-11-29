@@ -29,7 +29,6 @@ class CodeMaoClient:
         headers=None,
         sleep=0,
     ):
-
         headers = headers or self.HEADERS
         url = url if "http" in url else f"{self.BASE_URL}{url}"
         time.sleep(sleep)

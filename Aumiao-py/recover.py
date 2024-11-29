@@ -16,7 +16,6 @@ def write(
     check_file(path=path)
     with open(path, mode=method, encoding="utf-8") as file:
         if type == "str":
-
             file.write(text + "\n")  # type: ignore
         elif type == "dict":
             file.write(json.dumps(text, ensure_ascii=False, indent=4, sort_keys=False))
