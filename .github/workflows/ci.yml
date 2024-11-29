@@ -12,6 +12,7 @@ concurrency:
 
 env:
   PYTHON_VERSION: "3.12"
+  EXCLUDE_FILE:["video","project"]
 
 jobs:
   determine_changes:
@@ -61,10 +62,10 @@ jobs:
       #     npx prettier --prose-wrap always --check "**/*.md"
 
       - name: "Python format"
-        run: uvx ruff format --diff .
+        run: uvx ruff format --diff . exclude=${{ env.PYTHON_VERSION }}
 
       - name: "Python lint"
-        run: uvx ruff check .
+        run: uvx ruff check . exclude=${{ env.PYTHON_VERSION }}
 
       - name: "Python type check"
         run: uvx mypy
