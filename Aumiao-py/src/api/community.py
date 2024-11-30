@@ -242,9 +242,9 @@ class Obtain:
 		response = self.acquire.send_request(url="/web/banners/all", method="get", params=params)
 		return response.json()
 
-	# TODO type值未定
 	# 获取推荐头图
-	def get_banner_nemo(self, type: int):
+	def get_banner_nemo(self, type: Literal[1, 2, 3]):
+		# 1:点个猫推荐页 2:点个猫主题页 3:点个猫课程页
 		params = {"banner_type": type}
 		response = self.acquire.send_request(url="/nemo/v2/home/banners", method="get", params=params)
 		return response.json()

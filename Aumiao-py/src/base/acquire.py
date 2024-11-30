@@ -18,7 +18,7 @@ class CodeMaoClient:
 		self.tool_process = Tool.CodeMaoProcess()
 		self.HEADERS = self.data.PROGRAM["HEADERS"]
 		self.BASE_URL = self.data.PROGRAM["BASE_URL"]
-		# global session
+		global session  # noqa: PLW0602
 
 	def send_request(
 		self,
