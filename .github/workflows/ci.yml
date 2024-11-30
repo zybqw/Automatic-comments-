@@ -19,12 +19,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/ruff-action@v1
         with:
-          - id: "linter"
-            src: "./src"
-            args: "check --fix"
-          - id: "formatter"
-            src: "./src"
-            args: "format --check"
+          src: "./src"
+          args: "check --fix"
+          args: "format --check"
           changed-files: "true"
 
       # - uses: actions/setup-python@v5
