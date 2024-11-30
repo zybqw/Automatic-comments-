@@ -17,7 +17,7 @@ class Login:
 		return response.json()
 
 	def update_token(self, token):
-		global HEADERS
+		global HEADERS  # noqa: PLW0602
 		HEADERS["Authorization"] = f"Bearer {token}"
 
 
@@ -53,7 +53,7 @@ class Explore:
 		limit: int = 6,
 		category: str = "recommend",
 		originpage: str = "",
-		searchValue: str = "",
+		searchValue: str = "",  # noqa: N803
 	):
 		originpage = originpage if originpage != "" else category
 		data = json.dumps(
@@ -151,7 +151,8 @@ class Chat:
 				"assistanttime": "2024-07-17 16:51:02",  # 时间
 				"model": "qwen2-72B-Instruct",  # 模型
 				"questionList": [],  # 未知
-				"roleAvatar": "https://cravatar.cn/avatar/ef166b47449cc7e4e71cec1a2f826a70?s=200&d=mp",  # ai头像可以随便上传
+				"roleAvatar": "https://cravatar.cn/avatar/ef166b47449cc7e4e71cec1a2f826a70?s=200&d=mp",
+				# ai头像可以随便上传
 				"roleId": "bmi5aruzldsb1za2m5d1718161196283",  # 每个角色被赋予唯一id
 				"sensitive": False,  # 未知
 			}

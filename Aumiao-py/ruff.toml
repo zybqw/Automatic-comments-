@@ -8,6 +8,7 @@ exclude = [
     ".venv",
     ".vscode",
     "__pypackages__",
+    "video",
     "_build",
     "build",
     "dist",

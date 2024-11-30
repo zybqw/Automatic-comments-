@@ -22,14 +22,12 @@ jobs:
       - name: "Lint"
         uses: astral-sh/ruff-action@v1
         with:
-          src: "./Aumiao-py/src"
           args: "check --fix"
           changed-files: "true"
 
       - name: "Format"
         uses: astral-sh/ruff-action@v1
         with:
-          src: "./Aumiao-py/src"
           changed-files: "true"
           args: "format --check"
 
