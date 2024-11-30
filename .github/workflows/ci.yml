@@ -13,7 +13,7 @@ env:
 jobs:
   lint_format:
     timeout-minutes: 10
-    name: "lint"
+    name: "Lint and Format"
     runs-on: ubuntu-latest
     steps:
       - name: "Check Out"
@@ -48,6 +48,8 @@ jobs:
       #   run: uvx mypy
 
   typos:
+    timeout-minutes: 10
+    name: "Code Spell Checker"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
