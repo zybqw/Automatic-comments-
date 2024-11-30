@@ -39,9 +39,9 @@ class CodeMaoProcess:
 
     # 时间戳转换为时间
     def process_timestamp(self, timestamp: int) -> str:
-        timeArray = time.localtime(timestamp)
-        StyleTime = time.strftime("%Y-%m-%d %H:%M:%S", timeArray)
-        return StyleTime
+        time_array = time.localtime(timestamp)
+        style_time = time.strftime("%Y-%m-%d %H:%M:%S", time_array)
+        return style_time
 
     # 通过点分隔的键路径从嵌套字典中获取值
     def process_path(self, data: dict, path: str | None) -> dict:
