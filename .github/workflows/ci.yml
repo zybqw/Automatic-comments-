@@ -16,13 +16,22 @@ jobs:
     name: "lint"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/ruff-action@v1
+      - name: "Check Out"
+        uses: actions/checkout@v4
+
+      - name: "Lint"
+        uses: astral-sh/ruff-action@v1
         with:
           src: "./src"
           args: "check --fix"
-          args: "format --check"
           changed-files: "true"
+
+      - name: "Format"
+        uses: astral-sh/ruff-action@v1
+        with:
+          src: "./src"
+          changed-files: "true"
+          args: "format --check"
 
       # - uses: actions/setup-python@v5
       #   with:
