@@ -40,14 +40,14 @@ class CodeMaoFile:
 		self,
 		path: str,
 		text: str | dict,
-		type: str = "str",
-		method: str = "w",
+		type: Literal["str", "dict"] = "str",
+		mode: str = "w",
 	) -> None:
 		self.check_file(path)
-		with open(path, mode=method, encoding="utf-8") as file:
+		with open(path, mode=mode, encoding="utf-8") as file:
 			if type == "str":
 				file.write(text + "\n")  # type: ignore
 			elif type == "dict":
-				file.write(json.dumps(text, ensure_ascii=False, indent=4, sort_keys=False))
+				file.write(json.dumps(obj=text, ensure_ascii=False, indent=4, sort_keys=False))
 			else:
 				raise ValueError("不支持的写入方法")
