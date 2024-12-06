@@ -1,22 +1,23 @@
 from typing import Literal
 
+from src.api import community, user, work
 from src.base import acquire, data, file, tool
-
-from . import community, user, work
 
 
 class Union:
 	def __init__(self) -> None:
 		self.acquire = acquire.CodeMaoClient()
-		self.user_obtain = user.Obtain()
-		self.work_obtain = work.Obtain()
-		self.data = data.CodeMaoData()
-		self.tool_process = tool.CodeMaoProcess()
-		self.work_motion = work.Motion()
+		self.cache = data.CodeMaoCache()
 		self.community_obtain = community.Obtain()
+		self.data = data.CodeMaoData()
 		self.file = file.CodeMaoFile()
-		self.user_motion = user.Motion()
+		self.setting = data.CodeMaoSetting()
+		self.tool_process = tool.CodeMaoProcess()
 		self.tool_routine = tool.CodeMaoRoutine()
+		self.user_motion = user.Motion()
+		self.user_obtain = user.Obtain()
+		self.work_motion = work.Motion()
+		self.work_obtain = work.Obtain()
 
 	# 清除作品广告的函数
 	def clear_ad(self, keys) -> bool:
@@ -115,6 +116,7 @@ class Union:
 	# 新增粉丝提醒
 	def message_report(self, user_id: str):
 		response = self.user_obtain.get_user_honor(user_id=user_id)
+		timestamp = self.community_obtain.get_timestamp()["data"]
 		user_data = {
 			"user_id": response["user_id"],
 			"nickname": response["nickname"],
@@ -123,8 +125,9 @@ class Union:
 			"collected": response["collected_total"],
 			"liked": response["liked_total"],
 			"view": response["view_times"],
+			"timestamp": timestamp,
 		}
-		before_data = self.file.file_load(path=data.CACHE_FILE_PATH, type="json")
+		before_data = self.cache.CACHE
 		if before_data != {}:
 			self.tool_routine.print_changes(
 				before_data=before_data,  # type: ignore
@@ -135,8 +138,9 @@ class Union:
 					"liked": "被赞",
 					"view": "被预览",
 				},
+				date="timestamp"
 			)
-		self.file.write(path=data.CACHE_FILE_PATH, text=user_data, type="dict")
+		before_data.update(user_data)
 
 	# 猜测手机号码(暴力枚举)
 	def guess_phonenum(self, phonenum: str) -> int | None:
@@ -146,3 +150,8 @@ class Union:
 			print(test_string)
 			if self.user_motion.verify_phone(test_string):
 				return test_string
+
+	# 打印slogan
+	def index(self):
+		print(self.setting.PROGRAM["SLOGAN"])
+		print(f"版本号: {self.setting.PROGRAM["VERSION"]}")
