@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, cast
 
 from src.api import community, user, work
 from src.base import acquire, data, file, tool
@@ -21,12 +21,13 @@ class Union:
 
 	# 清除作品广告的函数
 	def clear_ad(self, keys) -> bool:
-		# works_list = self.user_obtain.get_user_works_web(self.data.ACCOUNT_DATA["id"])
-		works_list = self.user_obtain.get_user_works_web("12770114")
+		works_list = self.user_obtain.get_user_works_web(self.data.ACCOUNT_DATA["id"])
 		for works_item in works_list:
 			work_id = works_item["id"]
+			work_id = cast(int, work_id)
+			works_item["id"] = cast(int, works_item["id"])
 			comments: list = self.get_comments_detail(
-				work_id=works_item["id"],  # type: ignore
+				work_id=works_item["id"],
 				method="comments",
 			)
 			for comments_item in comments:
@@ -37,7 +38,7 @@ class Union:
 				):
 					print("在作品 {} 中发现广告: {} ".format(works_item["work_name"], content))
 					response = self.work_motion.del_comment_work(
-						work_id=work_id,  # type: ignore
+						work_id=work_id,
 						comment_id=comment_id,
 					)
 					print("*" * 50)
@@ -49,13 +50,63 @@ class Union:
 					if any(item in reply for item in keys):
 						print("在作品 {} 中 {} 评论中发现广告: {} ".format(works_item["work_name"], content, reply))
 						response = self.work_motion.del_comment_work(
-							work_id=work_id,  # type: ignore
-							comment_id=reply_id,  # type: ignore
+							work_id=work_id,
+							comment_id=reply_id,
 						)
 						print("*" * 50)
 						if not response:
 							return False
 		return True
+
+	# 清除邮箱红点
+	def clear_red_point(self, method: Literal["nemo", "web"]):
+		item = 0
+		while method == "web":
+			counts = self.community_obtain.get_message_count("web")
+			if len(set(counts[i]["count"] for i in range(3)) | {0}) == 1:
+				return True
+			params = {
+				"query_type": "ANYTHING",
+				"limit": 200,
+				"offset": item,
+			}
+			query_types = ["LIKE_FORK", "COMMENT_REPLY", "SYSTEM"]
+			responses = {}
+			for query_type in query_types:
+				params["query_type"] = query_type
+				responses[query_type] = self.acquire.send_request(
+					url="https://api.codemao.cn/web/message-record",
+					method="get",
+					params=params,
+				).status_code
+			item += 200
+			if len(set(responses.values()) | {200}) != 1:
+				return False
+		while method == "nemo":
+			counts = self.community_obtain.get_message_count("nemo")
+			if (
+				counts["like_collection_count"]
+				+ counts["comment_count"]
+				+ counts["re_create_count"]
+				+ counts["system_count"]
+				== 0
+			):
+				return True
+			params = {
+				"limit": 200,
+				"offset": item,
+			}
+			extra_items = [1, 3]
+			responses = {}
+			for extra_url in extra_items:
+				responses[extra_items] = self.acquire.send_request(
+					url="/nemo/v2/user/message/{extra_url}",
+					method="get",
+					params=params,
+				).status_code
+			item += 200
+			if len(set(responses.values()) | {200}) != 1:
+				return False
 
 	# 获取评论区特定信息
 	def get_comments_detail(
@@ -91,7 +142,8 @@ class Union:
 	def like_all_work(self, user_id: str):
 		works_list = self.user_obtain.get_user_works_web(user_id)
 		for item in works_list:
-			if not self.work_motion.like_work(work_id=item["id"]):  # type: ignore
+			item["id"] = cast(int, item["id"])
+			if not self.work_motion.like_work(work_id=item["id"]):
 				return False
 		return True
 
@@ -130,7 +182,7 @@ class Union:
 		before_data = self.cache.CACHE
 		if before_data != {}:
 			self.tool_routine.print_changes(
-				before_data=before_data,  # type: ignore
+				before_data=before_data,
 				after_data=user_data,
 				data={
 					"fans": "粉丝",
@@ -138,7 +190,7 @@ class Union:
 					"liked": "被赞",
 					"view": "被预览",
 				},
-				date="timestamp"
+				date="timestamp",
 			)
 		before_data.update(user_data)
 

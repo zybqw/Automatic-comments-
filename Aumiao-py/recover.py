@@ -10,14 +10,13 @@ __version__ = "2.0.0"
 def write(
 	path: str,
 	text: str | dict,
-	type: str = "str",
 	method: str = "w",
 ) -> None:
 	check_file(path=path)
 	with open(path, mode=method, encoding="utf-8") as file:
-		if type == "str":
-			file.write(text + "\n")  # type: ignore
-		elif type == "dict":
+		if isinstance(text, str):
+			file.write(text + "\n")
+		elif isinstance(text, dict):
 			file.write(json.dumps(text, ensure_ascii=False, indent=4, sort_keys=False))
 		else:
 			raise ValueError("不支持的写入方法")
@@ -133,5 +132,5 @@ data = {
 cache = {}
 
 
-write(path=DATA_FILE_PATH, text=data, type="dict")
-write(path=CACHE_FILE_PATH, text=cache, type="dict")
+write(path=DATA_FILE_PATH, text=data)
+write(path=CACHE_FILE_PATH, text=cache)

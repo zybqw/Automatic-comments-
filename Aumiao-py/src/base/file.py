@@ -36,18 +36,17 @@ class CodeMaoFile:
 				raise ValueError("不支持的读取方法")
 
 	# 将文本写入到指定文件
-	def write(
+	def file_write(
 		self,
 		path: str,
 		text: str | dict,
-		type: Literal["str", "dict"] = "str",
-		mode: str = "w",
+		method: str = "w",
 	) -> None:
-		self.check_file(path)
-		with open(path, mode=mode, encoding="utf-8") as file:
-			if type == "str":
-				file.write(text + "\n")  # type: ignore
-			elif type == "dict":
-				file.write(json.dumps(obj=text, ensure_ascii=False, indent=4, sort_keys=False))
+		self.check_file(path=path)
+		with open(path, mode=method, encoding="utf-8") as file:
+			if isinstance(text, str):
+				file.write(text + "\n")
+			elif isinstance(text, dict):
+				file.write(json.dumps(text, ensure_ascii=False, indent=4, sort_keys=False))
 			else:
 				raise ValueError("不支持的写入方法")
