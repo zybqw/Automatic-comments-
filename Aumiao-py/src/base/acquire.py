@@ -66,7 +66,6 @@ class CodeMaoClient:
 		items_per_page = (
 			params[args["amount"]] if "amount" in args.keys() else initial_response.json()[args["res_amount_key"]]
 		)
-
 		total_pages = (total_items + items_per_page - 1) // items_per_page  # 向上取整
 		all_data = []
 		fetch_count = 0
