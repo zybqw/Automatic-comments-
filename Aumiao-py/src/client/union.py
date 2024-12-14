@@ -254,70 +254,64 @@ class Motion(Union):
 	# 自动回复
 	def reply_work(self):
 		new_replies = Obtain().get_new_replies()
-		answer_list = self.data.USER_DATA["answers"]
-		reply_list = self.data.USER_DATA["replies"]
+		_answers = [
+			{question: answer.format(**self.data.INFO) for question, answer in answer_dict.items()}
+			for answer_dict in self.data.USER_DATA["answers"]
+		]
+		_replies = [reply.format(**self.data.INFO) for reply in self.data.USER_DATA["replies"]]
 
 		def get_response(comment, answers):
 			for answer_dict in answers:
 				for key, value in answer_dict.items():
 					if key in comment:
 						return value
-					else:
-						return None
 
-		print(new_replies)
 		if new_replies == [{}]:
 			return True
 		for item in new_replies:
 			type_item = item["type"]
-			item["content"] = cast(str, item["content"])
-			content = loads(item["content"])
-			if type_item in ["WORK_COMMENT"]:
-				_answer = get_response(comment=content["message"]["comment"], answers=answer_list)
-				comment = _answer if _answer else choice(reply_list)
-				response = self.work_motion.reply_work(
-					work_id=content["message"]["business_id"],
-					comment_id=content["message"]["comment_id"],
-					comment=comment,
-					return_data=True,
-				)
-			elif type_item in ["WORK_REPLY", "WORK_REPLY_REPLY"]:
-				_answer = get_response(comment=content["message"]["reply"], answers=answer_list)
-				comment = _answer if _answer else choice(reply_list)
-				print(comment)
-				parent_id = item["reference_id"]
-				# parent_id也可等于content["message"]["replied_id"]
-				parent_id = cast(int, parent_id)
-				id_list = Obtain().get_comments_detail(work_id=content["message"]["business_id"], method="comment_id")
-				comment_id = self.tool_routine.find_prefix(number=content["message"]["replied_id"], lst=id_list)
-				comment_id = cast(int, comment_id)
-				response = self.work_motion.reply_work(
-					work_id=content["message"]["business_id"],
-					comment_id=comment_id,
-					# Todo comment_id 需为所在评论的id
-					comment=comment,
-					parent_id=parent_id,
-					return_data=True,
-				)
-				print(response)
-			else:
-				continue
+			content = loads(cast(str, item["content"]))
+			message = content["message"]
+			print(message)
+			if type_item in ["WORK_COMMENT", "WORK_REPLY", "WORK_REPLY_REPLY"]:
+				comment_text = message["comment"] if type_item == "WORK_COMMENT" else message["reply"]
+				_answer = get_response(comment=comment_text, answers=_answers)
+				comment = _answer if _answer else choice(_replies)
+				if type_item == "WORK_COMMENT":
+					self.work_motion.reply_work(
+						work_id=message["business_id"],
+						comment_id=message["comment_id"],
+						comment=comment,
+						return_data=True,
+					)
+				else:
+					parent_id = cast(int, item.get("reference_id", message["replied_id"]))
+					id_list = Obtain().get_comments_detail(work_id=message["business_id"], method="comment_id")
+					comment_id = cast(int, self.tool_routine.find_prefix(number=message["reply_id"], lst=id_list))
+					self.work_motion.reply_work(
+						work_id=message["business_id"],
+						comment_id=comment_id,
+						comment=comment,
+						parent_id=parent_id,
+						return_data=True,
+					)
 
-	# "WORK_REPLY",路人a评论自身在某个作品的评论
-	# "WORK_REPLY_REPLY_FEEDBACK",路人a回复自己在某个作品下发布的评论的路人b/a的回复
-	# "WORK_COMMENT",路人a评论自身的作品
-	# "WORK_REPLY_REPLY_AUTHOR",路人a回复自己作品下路人b/a对某条评论的回复
-	# "WORK_REPLY_REPLY",路人a回复自己作品下路人b/a的评论下自己的回复
-	# "POST_REPLY",
-	# "POST_REPLY_REPLY_AUTHOR",
-	# "POST_REPLY_AUTHOR",
-	# "POST_COMMENT",
-	# "POST_REPLY_REPLY_FEEDBACK",
-	# "POST_REPLY_REPLY",
-	# "WORK_REPLY_AUTHOR",路人a回复自己作品下路人b的某条评论
-	# "WORK_DISCUSSION_LIKED",
-	# "WORK_LIKE",
-	# "POST_DISCUSSION_LIKED",
-	# "POST_COMMENT_DELETE_FEEDBACK",
-	# "POST_DELETE_FEEDBACK",
-	# "WORK_SHOP_USER_LEAVE",
+
+# "WORK_REPLY",路人a评论{user}在某个作品的评论
+# "WORK_REPLY_REPLY_FEEDBACK",路人a回复{user}在某个作品下发布的评论的路人b/a的回复
+# "WORK_COMMENT",路人a评论{user}的作品
+# "WORK_REPLY_REPLY_AUTHOR",路人a回复{user}作品下路人b/a对某条评论的回复
+# "WORK_REPLY_REPLY",路人a回复{user}作品下路人b/a的评论下{user}的回复
+# "POST_REPLY",
+# "POST_REPLY_REPLY_AUTHOR",
+# "POST_REPLY_AUTHOR",
+# "POST_COMMENT",
+# "POST_REPLY_REPLY_FEEDBACK",
+# "POST_REPLY_REPLY",
+# "WORK_REPLY_AUTHOR",路人a回复{user}作品下路人b的某条评论
+# "WORK_DISCUSSION_LIKED",
+# "WORK_LIKE",
+# "POST_DISCUSSION_LIKED",
+# "POST_COMMENT_DELETE_FEEDBACK",
+# "POST_DELETE_FEEDBACK",
+# "WORK_SHOP_USER_LEAVE",

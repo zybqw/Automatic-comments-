@@ -63,6 +63,7 @@ class CodeMaoData:
 		self.USER_DATA = SyncDict(
 			file_path=DATA_FILE_PATH, parent_ref=self.data, key="USER_DATA", **self.data["USER_DATA"]
 		)
+		self.INFO = SyncDict(file_path=DATA_FILE_PATH, parent_ref=self.data, key="INFO", **self.data["INFO"])
 
 
 @singleton
