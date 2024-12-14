@@ -10,7 +10,7 @@ CACHE_FILE_PATH: str = os.path.join(os.getcwd(), "data/" "cache.json")
 SETTING_FILE_PATH: str = os.path.join(os.getcwd(), "data/" "setting.json")
 
 
-@singleton
+# 该字典不可单例
 class SyncDict(dict[str, Any]):
 	"""
 	自定义字典类，用于在修改内容时自动同步到文件中。

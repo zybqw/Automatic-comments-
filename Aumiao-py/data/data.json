@@ -46,9 +46,10 @@
 			"魔术喵_魔术"
 		],
 		"answers": [
-			"How are you? |I'm fine Thank you ",
-			"Let's play,OK? |Great!",
-			"What's your name? |I'm {}"
+			{ "How are you?": "I'm fine thank you" },
+			{ "Let's play,OK?": "Great!" },
+			{ "What's your name?": "I'm {author_name}" },
+			{ "What's your QQ number?": "It's {qq_num}" }
 		],
 		"replies": [
 			"{}很忙oh,机器人来凑热闹(*＾＾*)",

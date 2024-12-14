@@ -1,3 +1,5 @@
+from json import loads
+from random import choice
 from typing import Literal, cast
 
 from src.api import community, user, work
@@ -19,6 +21,117 @@ class Union:
 		self.work_motion = work.Motion()
 		self.work_obtain = work.Obtain()
 
+
+class Tool(Union):
+	def __init__(self) -> None:
+		super().__init__()
+
+	# 新增粉丝提醒
+	def message_report(self, user_id: str):
+		response = self.user_obtain.get_user_honor(user_id=user_id)
+		timestamp = self.community_obtain.get_timestamp()["data"]
+		user_data = {
+			"user_id": response["user_id"],
+			"nickname": response["nickname"],
+			"level": response["author_level"],
+			"fans": response["fans_total"],
+			"collected": response["collected_total"],
+			"liked": response["liked_total"],
+			"view": response["view_times"],
+			"timestamp": timestamp,
+		}
+		before_data = self.cache.CACHE
+		if before_data != {}:
+			self.tool_routine.print_changes(
+				before_data=before_data,
+				after_data=user_data,
+				data={
+					"fans": "粉丝",
+					"collected": "被收藏",
+					"liked": "被赞",
+					"view": "被预览",
+				},
+				date="timestamp",
+			)
+		before_data.update(user_data)
+
+	# 猜测手机号码(暴力枚举)
+	def guess_phonenum(self, phonenum: str) -> int | None:
+		for i in range(10000):
+			guess = f"{i:04d}"  # 格式化为四位数，前面补零
+			test_string = int(phonenum.replace("****", guess))
+			print(test_string)
+			if self.user_motion.verify_phone(test_string):
+				return test_string
+
+
+class Index(Union):
+	def __init__(self) -> None:
+		super().__init__()
+
+	# 打印slogan
+	def index(self):
+		print(self.setting.PROGRAM["SLOGAN"])
+		print(f"版本号: {self.setting.PROGRAM["VERSION"]}")
+
+
+class Obtain(Union):
+	def __init__(self) -> None:
+		super().__init__()
+
+	# 获取新回复(传入参数就获取前*个回复,若没传入就获取新回复数量, 再获取新回复数量个回复)
+	def get_new_replies(
+		self, limit: int = 0, type_item: Literal["LIKE_FORK", "COMMENT_REPLY", "SYSTEM"] = "COMMENT_REPLY"
+	) -> list[dict[str, str | int | dict]]:
+		_list = []
+		reply_num = self.community_obtain.get_message_count(method="web")[0]["count"]
+		if reply_num == limit == 0:
+			return [{}]
+		result_num = reply_num if limit == 0 else limit
+		offset = 0
+		while result_num >= 0:
+			limit = sorted([5, result_num, 200])[1]
+			response = self.community_obtain.get_replies(type=type_item, limit=limit, offset=offset)
+			_list.extend(response["items"][:result_num])
+			result_num -= limit
+			offset += limit
+		return _list
+
+	# 获取评论区特定信息
+	def get_comments_detail(
+		self,
+		work_id: int,
+		method: Literal["user_id", "comments"] = "user_id",
+	):
+		comments = self.work_obtain.get_work_comments(work_id=work_id)
+		if method == "user_id":
+			result = [item["user"]["id"] for item in comments]
+		elif method == "comments":
+			result = []
+			for item in comments:
+				comment_detail = {
+					"id": item["id"],
+					"content": item["content"],
+					"is_top": item["is_top"],
+					"replies": [],
+				}
+				if "replies" in item and "items" in item["replies"]:
+					for reply in item["replies"]["items"]:
+						reply_detail = {
+							"id": reply["id"],
+							"content": reply["content"],
+						}
+						comment_detail["replies"].append(reply_detail)
+				result.append(comment_detail)
+		else:
+			raise ValueError("不支持的请求方法")
+		return result
+
+
+class Motion(Union):
+	def __init__(self) -> None:
+		super().__init__()
+
 	# 清除作品广告的函数
 	def clear_ad(self, keys) -> bool:
 		works_list = self.user_obtain.get_user_works_web(self.data.ACCOUNT_DATA["id"])
@@ -26,7 +139,7 @@ class Union:
 			work_id = works_item["id"]
 			work_id = cast(int, work_id)
 			works_item["id"] = cast(int, works_item["id"])
-			comments: list = self.get_comments_detail(
+			comments: list = Obtain().get_comments_detail(
 				work_id=works_item["id"],
 				method="comments",
 			)
@@ -108,36 +221,6 @@ class Union:
 			if len(set(responses.values()) | {200}) != 1:
 				return False
 
-	# 获取评论区特定信息
-	def get_comments_detail(
-		self,
-		work_id: int,
-		method: Literal["user_id", "comments"] = "user_id",
-	):
-		comments = self.work_obtain.get_work_comments(work_id=work_id)
-		if method == "user_id":
-			result = [item["user"]["id"] for item in comments]
-		elif method == "comments":
-			result = []
-			for item in comments:
-				comment_detail = {
-					"id": item["id"],
-					"content": item["content"],
-					"is_top": item["is_top"],
-					"replies": [],
-				}
-				if "replies" in item and "items" in item["replies"]:
-					for reply in item["replies"]["items"]:
-						reply_detail = {
-							"id": reply["id"],
-							"content": reply["content"],
-						}
-						comment_detail["replies"].append(reply_detail)
-				result.append(comment_detail)
-		else:
-			raise ValueError("不支持的请求方法")
-		return result
-
 	# 给某人作品全点赞
 	def like_all_work(self, user_id: str):
 		works_list = self.user_obtain.get_user_works_web(user_id)
@@ -147,63 +230,68 @@ class Union:
 				return False
 		return True
 
-	# 获取新回复(传入参数就获取前*个回复,若没传入就获取新回复数量, 再获取新回复数量个回复)
-	def get_new_replies(self, limit: int = 0) -> list[dict[str, str | int]]:
-		_list = []
-		reply_num = self.community_obtain.get_message_count(method="web")[0]["count"]
-		if reply_num == limit == 0:
-			return [{}]
-		result_num = reply_num if limit == 0 else limit
-		offset = 0
-		while True:
-			limit = sorted([5, result_num, 200])[1]
-			response = self.community_obtain.get_replies(type="COMMENT_REPLY", limit=limit, offset=offset)
-			_list.extend(response["items"][:result_num])
-			result_num -= limit
-			offset += limit
-			if result_num <= 0:
-				break
-		return _list
+	# 自动回复
+	def reply_work(self):
+		new_replies = Obtain().get_new_replies()
+		answer_list = self.data.USER_DATA["answers"]
+		reply_list = self.data.USER_DATA["replies"]
 
-	# 新增粉丝提醒
-	def message_report(self, user_id: str):
-		response = self.user_obtain.get_user_honor(user_id=user_id)
-		timestamp = self.community_obtain.get_timestamp()["data"]
-		user_data = {
-			"user_id": response["user_id"],
-			"nickname": response["nickname"],
-			"level": response["author_level"],
-			"fans": response["fans_total"],
-			"collected": response["collected_total"],
-			"liked": response["liked_total"],
-			"view": response["view_times"],
-			"timestamp": timestamp,
-		}
-		before_data = self.cache.CACHE
-		if before_data != {}:
-			self.tool_routine.print_changes(
-				before_data=before_data,
-				after_data=user_data,
-				data={
-					"fans": "粉丝",
-					"collected": "被收藏",
-					"liked": "被赞",
-					"view": "被预览",
-				},
-				date="timestamp",
-			)
-		before_data.update(user_data)
+		def get_response(comment, answers):
+			for answer_dict in answers:
+				for key, value in answer_dict.items():
+					if key in comment:
+						return value
+					else:
+						return None
 
-	# 猜测手机号码(暴力枚举)
-	def guess_phonenum(self, phonenum: str) -> int | None:
-		for i in range(10000):
-			guess = f"{i:04d}"  # 格式化为四位数，前面补零
-			test_string = int(phonenum.replace("****", guess))
-			print(test_string)
-			if self.user_motion.verify_phone(test_string):
-				return test_string
+		print(new_replies)
+		if new_replies == [{}]:
+			return True
+		for item in new_replies:
+			type_item = item
+			item["content"] = cast(str, item["content"])
+			content = loads(item["content"])
+			_answer = get_response(comment=content["message"]["comment"], answers=answer_list)
+			comment = _answer if _answer else choice(reply_list)
+			print(comment)
+			if type_item in ["WORK_COMMENT"]:
+				response = self.work_motion.reply_work(
+					work_id=content["message"]["business_id"],
+					comment_id=content["message"]["comment_id"],
+					comment=comment,
+					return_data=True,
+				)
+				print(item["content"])
+				print(response)
+			elif type_item in ["WORK_REPLY", "WORK_REPLY_REPLY"]:
+				parent_id = item["reference_id"]
+				parent_id = cast(int, parent_id)
+				response = self.work_motion.reply_work(
+					work_id=content["message"]["business_id"],
+					comment_id=content["message"]["replied_id"],
+					comment=comment,
+					parent_id=parent_id,
+					return_data=True,
+				)
+				print(response)
+			else:
+				continue
 
-	# 打印slogan
-	def index(self):
-		print(self.setting.PROGRAM["SLOGAN"])
-		print(f"版本号: {self.setting.PROGRAM["VERSION"]}")
+	# "WORK_REPLY",路人a评论自身在某个作品的评论
+	# "WORK_REPLY_REPLY_FEEDBACK",路人a回复自己在某个作品下发布的评论的路人b/a的回复
+	# "WORK_COMMENT",路人a评论自身的作品
+	# "WORK_REPLY_REPLY_AUTHOR",路人a回复自己作品下路人b/a对某条评论的回复
+	# "WORK_REPLY_REPLY",路人a回复自己作品下路人b/a的评论下自己的回复
+	# "POST_REPLY",
+	# "POST_REPLY_REPLY_AUTHOR",
+	# "POST_REPLY_AUTHOR",
+	# "POST_COMMENT",
+	# "POST_REPLY_REPLY_FEEDBACK",
+	# "POST_REPLY_REPLY",
+	# "WORK_REPLY_AUTHOR",路人a回复自己作品下路人b的某条评论
+	# "WORK_DISCUSSION_LIKED",
+	# "WORK_LIKE",
+	# "POST_DISCUSSION_LIKED",
+	# "POST_COMMENT_DELETE_FEEDBACK",
+	# "POST_DELETE_FEEDBACK",
+	# "WORK_SHOP_USER_LEAVE",
