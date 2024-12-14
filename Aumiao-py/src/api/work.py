@@ -58,8 +58,8 @@ class Motion:
 		cover_type: int = 1,
 		user_labels: list = [],
 	):
-		# fork_enable: 0表示不开源，1表示开源
-		# if_default_cover: 1表示使用默认封面，2表示自定义封面
+		# fork_enable: 0表示不开源,1表示开源
+		# if_default_cover: 1表示使用默认封面,2表示自定义封面
 		# description: 作品描述,operation:操作说明
 		data = json.dumps(
 			{
@@ -85,7 +85,7 @@ class Motion:
 		return response.status_code == 200
 
 	# 新建KN作品/更新作品信息
-	# 更新作品时会在更新之前运行该函数，之后再publish
+	# 更新作品时会在更新之前运行该函数,之后再publish
 	def create_work_kn(
 		self,
 		name: str,
@@ -137,8 +137,8 @@ class Motion:
 		bcm_version: str,
 		cover_url: str = "",
 	):
-		# fork_enable: 0表示不开源，1表示开源,2表示对粉丝开源
-		# if_default_cover: 1表示使用默认封面，2表示自定义封面
+		# fork_enable: 0表示不开源,1表示开源,2表示对粉丝开源
+		# if_default_cover: 1表示使用默认封面,2表示自定义封面
 		# description: 作品描述,operation:操作说明
 		data = json.dumps(
 			{
@@ -221,7 +221,7 @@ class Motion:
 		)
 		return response.json() if return_data else response.status_code == 201
 
-	# 删除作品某个评论或评论的回复（评论和回复都会分配一个唯一id）
+	# 删除作品某个评论或评论的回复(评论和回复都会分配一个唯一id)
 	def del_comment_work(self, work_id: int, comment_id: int) -> bool:
 		response = self.acquire.send_request(
 			url=f"/creation-tools/v1/works/{work_id}/comment/{comment_id}",
@@ -394,8 +394,8 @@ class Obtain:
 		return response.json()
 
 	# 获取KN作品信息
-	# KN作品发布需要审核，发布后该接口不断定时获取数据
-	# #若接口数据返回正常，则表示发布成功，并将KN作品编辑页面的发布按钮改为更新
+	# KN作品发布需要审核,发布后该接口不断定时获取数据
+	# #若接口数据返回正常,则表示发布成功,并将KN作品编辑页面的发布按钮改为更新
 	def get_kn_work_info(self, work_id: int):
 		response = self.acquire.send_request(
 			url=f"https://api-creation.codemao.cn/neko/community/work/detail/{work_id}",

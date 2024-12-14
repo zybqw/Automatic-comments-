@@ -58,7 +58,7 @@ class Tool(Union):
 	# 猜测手机号码(暴力枚举)
 	def guess_phonenum(self, phonenum: str) -> int | None:
 		for i in range(10000):
-			guess = f"{i:04d}"  # 格式化为四位数，前面补零
+			guess = f"{i:04d}"  # 格式化为四位数,前面补零
 			test_string = int(phonenum.replace("****", guess))
 			print(test_string)
 			if self.user_motion.verify_phone(test_string):
@@ -101,11 +101,32 @@ class Obtain(Union):
 	def get_comments_detail(
 		self,
 		work_id: int,
-		method: Literal["user_id", "comments"] = "user_id",
+		method: Literal["user_id", "comments", "comment_id"] = "user_id",
 	):
 		comments = self.work_obtain.get_work_comments(work_id=work_id)
 		if method == "user_id":
-			result = [item["user"]["id"] for item in comments]
+			result = []
+			# 添加评论用户的 ID
+			result.extend(comment_item["user"]["id"] for comment_item in comments)
+			# 添加回复用户的 ID
+			result.extend(
+				reply_item["reply_user"]["id"]
+				for comment_item in comments
+				if "replies" in comment_item and "items" in comment_item["replies"]
+				for reply_item in comment_item["replies"]["items"]
+			)
+		elif method == "comment_id":
+			result = []
+			# 添加评论ID
+			result.extend(item["id"] for item in comments)
+			# 添加回复ID
+			result.extend(
+				f"{item['id']}.{reply['id']}"
+				for item in comments
+				if "replies" in item and "items" in item["replies"]
+				for reply in item["replies"]["items"]
+			)
+
 		elif method == "comments":
 			result = []
 			for item in comments:
@@ -248,27 +269,32 @@ class Motion(Union):
 		if new_replies == [{}]:
 			return True
 		for item in new_replies:
-			type_item = item
+			type_item = item["type"]
 			item["content"] = cast(str, item["content"])
 			content = loads(item["content"])
-			_answer = get_response(comment=content["message"]["comment"], answers=answer_list)
-			comment = _answer if _answer else choice(reply_list)
-			print(comment)
 			if type_item in ["WORK_COMMENT"]:
+				_answer = get_response(comment=content["message"]["comment"], answers=answer_list)
+				comment = _answer if _answer else choice(reply_list)
 				response = self.work_motion.reply_work(
 					work_id=content["message"]["business_id"],
 					comment_id=content["message"]["comment_id"],
 					comment=comment,
 					return_data=True,
 				)
-				print(item["content"])
-				print(response)
 			elif type_item in ["WORK_REPLY", "WORK_REPLY_REPLY"]:
+				_answer = get_response(comment=content["message"]["reply"], answers=answer_list)
+				comment = _answer if _answer else choice(reply_list)
+				print(comment)
 				parent_id = item["reference_id"]
+				# parent_id也可等于content["message"]["replied_id"]
 				parent_id = cast(int, parent_id)
+				id_list = Obtain().get_comments_detail(work_id=content["message"]["business_id"], method="comment_id")
+				comment_id = self.tool_routine.find_prefix(number=content["message"]["replied_id"], lst=id_list)
+				comment_id = cast(int, comment_id)
 				response = self.work_motion.reply_work(
 					work_id=content["message"]["business_id"],
-					comment_id=content["message"]["replied_id"],
+					comment_id=comment_id,
+					# Todo comment_id 需为所在评论的id
 					comment=comment,
 					parent_id=parent_id,
 					return_data=True,

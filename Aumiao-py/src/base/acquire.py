@@ -62,7 +62,7 @@ class CodeMaoClient:
 		total_items = int(
 			self.tool_process.process_path(initial_response.json(), total_key)  # type: ignore
 		)
-		# 尝试从 params 中获取 items_per_page，如果没有则使用初始响应中的值
+		# 尝试从 params 中获取 items_per_page,如果没有则使用初始响应中的值
 		items_per_page = (
 			params[args["amount"]] if "amount" in args.keys() else initial_response.json()[args["res_amount_key"]]
 		)

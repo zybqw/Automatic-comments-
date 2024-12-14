@@ -13,7 +13,7 @@ SETTING_FILE_PATH: str = os.path.join(os.getcwd(), "data/" "setting.json")
 # 该字典不可单例
 class SyncDict(dict[str, Any]):
 	"""
-	自定义字典类，用于在修改内容时自动同步到文件中。
+	自定义字典类,用于在修改内容时自动同步到文件中.
 	"""
 
 	def __init__(self, file_path: str, parent_ref: dict[str, Any], key: str | None, *args, **kwargs):

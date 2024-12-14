@@ -208,7 +208,7 @@ class Motion:
 		description: str,
 		return_data: bool = False,
 	):
-		# description与reason_id并不对应，可以自定义描述
+		# description与reason_id并不对应,可以自定义描述
 		data = json.dumps(
 			{
 				"reason_id": reason_id,

@@ -68,7 +68,7 @@ class Obtain:
 		response = self.acquire.send_request(url="/tiger/user", method="get")
 		return response.json()
 
-	# 获取用户点赞，再创作，收藏分
+	# 获取用户点赞,再创作,收藏分
 	def get_data_score(self):
 		response = self.acquire.send_request(url="/nemo/v3/user/grade/details", method="get")
 		return response.json()

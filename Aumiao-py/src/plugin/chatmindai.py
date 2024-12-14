@@ -119,7 +119,7 @@ class Chat:
 		return response.json()
 
 	def chat(self, chatid: str, modelid: str, message: str, context_analyse: int = 1):
-		# context_analyse为上下文分析，开启为1，关闭为0
+		# context_analyse为上下文分析,开启为1,关闭为0
 		data = json.dumps(
 			{
 				"message": message,

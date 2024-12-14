@@ -137,7 +137,7 @@ class Obtain:
 
 	# 获取班级内全部学生
 	def get_students(self, invalid: int = 1):
-		# invalid为1时为已加入班级学生，为0则反之
+		# invalid为1时为已加入班级学生,为0则反之
 		data = json.dumps({"invalid": invalid})
 		params = {"page": 1, "limit": 100}
 		students = self.acquire.fetch_data(

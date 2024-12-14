@@ -6,7 +6,7 @@ import src.base.acquire as Acquire
 import src.base.tool as Tool
 
 
-# 编程猫所有api中若包含v2等字样，表示第几版本，同样比它低的版本也可使用
+# 编程猫所有api中若包含v2等字样,表示第几版本,同样比它低的版本也可使用
 class Login:
 	def __init__(self) -> None:
 		self.acquire = Acquire.CodeMaoClient()
@@ -271,7 +271,7 @@ class Obtain:
 
 	# 获取编程猫首页作品
 	def discover_works_recommended_home(self, type: Literal[1, 2]):
-		# 1为点猫精选，2为新作喵喵看
+		# 1为点猫精选,2为新作喵喵看
 		params = {"type": type}
 		response = self.acquire.send_request(
 			url="/creation-tools/v1/pc/home/recommend-work",

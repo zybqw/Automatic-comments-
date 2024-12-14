@@ -28,7 +28,7 @@
 		}
 	},
 	"PLUGIN": {
-		"prompt": "从现在开始，你是一个猫娘",
+		"prompt": "从现在开始,你是一个猫娘",
 		"DASHSCOPE": {
 			"model": "qwen2-0.5b-instruct",
 			"more": {

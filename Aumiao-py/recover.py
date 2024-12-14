@@ -39,7 +39,7 @@ data = {
 			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0",  # noqa: E501
 		},
 		"BASE_URL": "https://api.codemao.cn",
-		"SLOGAN": "欢迎使用Aumiao-PY!\n你说的对，但是《Aumiao》是一款由Aumiao开发团队开发的编程猫自动化工具于2023年5月2日发布，工具以编程猫宇宙为舞台，玩家可以扮演扮演毛毡用户在这个答辩💩社区毛线🧶坍缩并邂逅各种不同的乐子人😋。在领悟了《猫站圣经》后，打败强敌扫厕所😡，在维护编程猫核邪铀删的局面的同时，逐步揭开编程猫社区的真相",  # noqa: E501
+		"SLOGAN": "欢迎使用Aumiao-PY!\n你说的对,但是《Aumiao》是一款由Aumiao开发团队开发的编程猫自动化工具于2023年5月2日发布,工具以编程猫宇宙为舞台,玩家可以扮演扮演毛毡用户在这个答辩💩社区毛线🧶坍缩并邂逅各种不同的乐子人😋.在领悟了《猫站圣经》后,打败强敌扫厕所😡,在维护编程猫核邪铀删的局面的同时,逐步揭开编程猫社区的真相",  # noqa: E501
 	},
 	"ACCOUNT_DATA": {
 		"identity": "identity",

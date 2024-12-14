@@ -30,7 +30,7 @@ class Obtain:
 			"-created_at",
 			"-latest_joined_at",
 		],
-	):  # 不要问我limit默认值为啥是14，因为api默认获取14个
+	):  # 不要问我limit默认值为啥是14,因为api默认获取14个
 		if isinstance(sort, list):
 			_sort = ",".join(sort)
 		params = {
@@ -61,7 +61,7 @@ class Obtain:
 		)
 		return members
 
-	# 获取工作室列表，包括工作室成员，工作室作品
+	# 获取工作室列表,包括工作室成员,工作室作品
 	def get_shops_details(
 		self,
 		levels: list[int] | int = [1, 2, 3, 4],

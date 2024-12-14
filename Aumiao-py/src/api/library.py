@@ -20,7 +20,7 @@ class CartoonObtain:
 		response = self.acquire.send_request(url=f"/api/comic/{comic_id}", method="get")
 		return response.json()
 
-	# 获取漫画某个章节信息（每个章节会分配一个唯一id）
+	# 获取漫画某个章节信息(每个章节会分配一个唯一id)
 	def get_cartoon_chapters(self, chapter_id):
 		response = self.acquire.send_request(url=f"/api/comic/page/list/{chapter_id}", method="get")
 		return response.json()
