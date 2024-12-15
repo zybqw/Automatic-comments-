@@ -2,8 +2,10 @@ import json
 from typing import Literal
 
 from src.base import acquire
+from src.base.decorator import singleton
 
 
+@singleton
 class Obtain:
 	def __init__(self) -> None:
 		self.acquire = acquire.CodeMaoClient()
@@ -134,6 +136,7 @@ class Obtain:
 		return response
 
 
+@singleton
 class Motion:
 	def __init__(self) -> None:
 		self.acquire = acquire.CodeMaoClient()

@@ -2,10 +2,12 @@ import json
 from typing import Literal
 
 import src.base.acquire as Acquire
+from src.base.decorator import singleton
 
 select = Literal["post", "delete"]
 
 
+@singleton
 class CartoonObtain:
 	def __init__(self):
 		self.acquire = Acquire.CodeMaoClient()
@@ -26,6 +28,7 @@ class CartoonObtain:
 		return response.json()
 
 
+@singleton
 class NovelObtain:
 	def __init__(self) -> None:
 		self.acquire = Acquire.CodeMaoClient()
@@ -149,6 +152,7 @@ class NovelMotion:
 		return response.json() if return_data else response.status_code == 200
 
 
+@singleton
 class BookObtain:
 	def __init__(self) -> None:
 		self.acquire = Acquire.CodeMaoClient()

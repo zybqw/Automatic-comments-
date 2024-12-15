@@ -2,10 +2,12 @@ import json
 from typing import Literal
 
 from src.base import acquire, tool
+from src.base.decorator import singleton
 
 select = Literal["post", "delete"]
 
 
+@singleton
 class Motion:
 	def __init__(self) -> None:
 		self.acquire = acquire.CodeMaoClient()
@@ -352,6 +354,7 @@ class Motion:
 		return response.status_code == 200
 
 
+@singleton
 class Obtain:
 	def __init__(self) -> None:
 		self.acquire = acquire.CodeMaoClient()

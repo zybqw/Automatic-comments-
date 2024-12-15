@@ -3,9 +3,10 @@ from random import choice
 from typing import Literal, cast
 
 from src.api import community, user, work
-from src.base import acquire, data, file, tool
+from src.base import acquire, data, decorator, file, tool
 
 
+@decorator.singleton
 class Union:
 	def __init__(self) -> None:
 		self.acquire = acquire.CodeMaoClient()
@@ -22,6 +23,7 @@ class Union:
 		self.work_obtain = work.Obtain()
 
 
+@decorator.singleton
 class Tool(Union):
 	def __init__(self) -> None:
 		super().__init__()
@@ -65,6 +67,7 @@ class Tool(Union):
 				return test_string
 
 
+@decorator.singleton
 class Index(Union):
 	def __init__(self) -> None:
 		super().__init__()
@@ -75,6 +78,7 @@ class Index(Union):
 		print(f"版本号: {self.setting.PROGRAM["VERSION"]}")
 
 
+@decorator.singleton
 class Obtain(Union):
 	def __init__(self) -> None:
 		super().__init__()
@@ -149,6 +153,7 @@ class Obtain(Union):
 		return result
 
 
+@decorator.singleton
 class Motion(Union):
 	def __init__(self) -> None:
 		super().__init__()

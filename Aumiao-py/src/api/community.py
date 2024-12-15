@@ -4,9 +4,11 @@ from typing import Literal
 
 import src.base.acquire as Acquire
 import src.base.tool as Tool
+from src.base.decorator import singleton
 
 
 # 编程猫所有api中若包含v2等字样,表示第几版本,同样比它低的版本也可使用
+@singleton
 class Login:
 	def __init__(self) -> None:
 		self.acquire = Acquire.CodeMaoClient()
@@ -159,6 +161,7 @@ class Login:
 		return response.json()
 
 
+@singleton
 class Obtain:
 	def __init__(self) -> None:
 		self.acquire = Acquire.CodeMaoClient()
@@ -369,6 +372,7 @@ class Obtain:
 		return response
 
 
+@singleton
 class Motion:
 	def __init__(self) -> None:
 		self.acquire = Acquire.CodeMaoClient()

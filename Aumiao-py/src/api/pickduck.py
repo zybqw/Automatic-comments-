@@ -1,8 +1,10 @@
 import json
 
 import src.base.acquire as Acquire
+from src.base.decorator import singleton
 
 
+@singleton
 class PickDuck:
 	def __init__(self) -> None:
 		self.acquire = Acquire.CodeMaoClient()

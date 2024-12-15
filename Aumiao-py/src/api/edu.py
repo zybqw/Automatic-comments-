@@ -2,10 +2,12 @@ import json
 from typing import Literal
 
 import src.base.acquire as Acquire
+from src.base.decorator import singleton
 
 from . import community
 
 
+@singleton
 class Motion:
 	def __init__(self) -> None:
 		self.acquire = Acquire.CodeMaoClient()
@@ -58,6 +60,7 @@ class Motion:
 		return response.status_code == 200
 
 
+@singleton
 class Obtain:
 	def __init__(self) -> None:
 		self.acquire = Acquire.CodeMaoClient()
