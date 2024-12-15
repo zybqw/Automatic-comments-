@@ -103,7 +103,7 @@ class Obtain(Union):
 		work_id: int,
 		method: Literal["user_id", "comments", "comment_id"] = "user_id",
 	):
-		comments = self.work_obtain.get_work_comments(work_id=work_id)
+		comments = self.work_obtain.get_work_comments(work_id=work_id, limit=200)
 		if method == "user_id":
 			result = []
 			# 添加评论用户的 ID
@@ -272,7 +272,6 @@ class Motion(Union):
 			type_item = item["type"]
 			content = loads(cast(str, item["content"]))
 			message = content["message"]
-			print(message)
 			if type_item in ["WORK_COMMENT", "WORK_REPLY", "WORK_REPLY_REPLY"]:
 				comment_text = message["comment"] if type_item == "WORK_COMMENT" else message["reply"]
 				_answer = get_response(comment=comment_text, answers=_answers)
