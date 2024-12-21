@@ -1,11 +1,6 @@
 name: CI
 
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  workflow_dispatch:
+on: [pull_request, pull_request_target]
 
 env:
   PYTHON_VERSION: "3.12"
@@ -56,3 +51,22 @@ jobs:
       - uses: crate-ci/typos@master
         with:
           files: .
+
+  commit:
+    timeout-minutes: 10
+    name: "Commit"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Commit files
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -a -m "Add changes"
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          branch: ${{ github.head_ref }}

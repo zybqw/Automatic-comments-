@@ -7,6 +7,7 @@ CACHE_FILE_PATH: str = os.path.join(os.getcwd(), "data/" "cache.json")
 __version__ = "2.0.0"
 
 
+# 写入文件
 def write(
 	path: str,
 	text: str | dict,
