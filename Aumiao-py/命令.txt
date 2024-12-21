@@ -1,5 +1,0 @@
---enable-plugin=tk-inter
-
-
-
-python -m nuitka --standalone --main="main.py" --show-memory --windows-icon-from-ico="luo.ico" --follow-imports --company-name="Aumiao Team" --product-name="Aumiao" --file-version="24.9.1" --product-version="2.0.0" --file-description="A CodeMao Community Tool" --copyright="GNU GENERAL PUBLIC LICENSE" --trademarks="None" --output-dir="dist" 
