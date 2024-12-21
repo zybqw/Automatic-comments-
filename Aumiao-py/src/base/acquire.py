@@ -1,5 +1,5 @@
 import time
-from typing import Literal
+from typing import Literal, cast
 
 import requests
 from requests.exceptions import ConnectionError, HTTPError, RequestException, Timeout
@@ -59,9 +59,7 @@ class CodeMaoClient:
 		},
 	) -> list[dict]:
 		initial_response = self.send_request(url=url, method=fetch_method, params=params, data=data)
-		total_items = int(
-			self.tool_process.process_path(initial_response.json(), total_key)  # type: ignore
-		)
+		total_items = int(cast(str, self.tool_process.process_path(initial_response.json(), total_key)))
 		# 尝试从 params 中获取 items_per_page,如果没有则使用初始响应中的值
 		items_per_page = (
 			params[args["amount"]] if "amount" in args.keys() else initial_response.json()[args["res_amount_key"]]

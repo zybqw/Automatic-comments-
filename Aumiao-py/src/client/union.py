@@ -2,7 +2,7 @@ from json import loads
 from random import choice
 from typing import Literal, cast
 
-from src.api import community, user, work
+from src.api import community, shop, user, work
 from src.base import acquire, data, decorator, file, tool
 
 
@@ -15,6 +15,8 @@ class Union:
 		self.data = data.CodeMaoData()
 		self.file = file.CodeMaoFile()
 		self.setting = data.CodeMaoSetting()
+		self.shop_motion = shop.Motion()
+		self.shop_obtain = shop.Obtain()
 		self.tool_process = tool.CodeMaoProcess()
 		self.tool_routine = tool.CodeMaoRoutine()
 		self.user_motion = user.Motion()
@@ -299,6 +301,17 @@ class Motion(Union):
 						parent_id=parent_id,
 						return_data=True,
 					)
+
+	# 工作室常驻置顶
+	def top_work(self):
+		detail = self.shop_obtain.get_shops_info()
+		description = self.shop_obtain.get_shop_details(detail["work_subject_id"])["description"]
+		self.shop_motion.update_shop_details(
+			description=description,
+			id=detail["id"],
+			name=detail["name"],
+			preview_url=detail["preview_url"],
+		)
 
 
 # "WORK_REPLY",路人a评论{user}在某个作品的评论

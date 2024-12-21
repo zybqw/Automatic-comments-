@@ -11,7 +11,7 @@ class Obtain:
 		self.acquire = Acquire.CodeMaoClient()
 
 	# 获取工作室简介(简易,需登录工作室成员账号)
-	def get_shops_simple(self):
+	def get_shops_info(self):
 		response = self.acquire.send_request(url="/web/work_shops/simple", method="get")
 		result = response.json()["work_shop"]
 		return result

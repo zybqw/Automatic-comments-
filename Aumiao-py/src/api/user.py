@@ -1,5 +1,5 @@
 import json
-from typing import Literal
+from typing import Literal, cast
 
 import src.base.acquire as Acquire
 from src.base.decorator import singleton
@@ -150,7 +150,8 @@ class Obtain:
 		elif method == "total":
 			url = "https://api-creation.codemao.cn/neko/works/v2/list/user"
 		params = {"offset": 0, "limit": 15}
-		params.update(extra_params or {})  # type: ignore
+		params = cast(dict, params)
+		params.update(extra_params or {})
 		works = self.acquire.fetch_data(url=url, params=params, data_key="items")
 		return works
 
