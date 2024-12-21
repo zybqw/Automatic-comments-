@@ -1,5 +1,5 @@
 from .api import community, edu, forum, library, pickduck, shop, user, work
-from .client import union
+from .client import client
 
 __all__ = [
 	"community",
@@ -7,7 +7,7 @@ __all__ = [
 	"pickduck",
 	"forum",
 	"shop",
-	"union",
+	"client",
 	"user",
 	"work",
 	"library",
