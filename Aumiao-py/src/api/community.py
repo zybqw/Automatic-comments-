@@ -3,6 +3,7 @@ import uuid
 from typing import Literal
 
 import src.base.acquire as Acquire
+import src.base.data as Data
 import src.base.tool as Tool
 from src.base.decorator import singleton
 
@@ -13,6 +14,7 @@ class Login:
 	def __init__(self) -> None:
 		self.acquire = Acquire.CodeMaoClient()
 		self.tool_process = Tool.CodeMaoProcess()
+		self.setting = Data.CodeMaoSetting()
 
 	# 密码登录函数
 	def login_password(
@@ -51,7 +53,7 @@ class Login:
 			print(f"表达式输入不合法 {err}")
 			return False
 		response = self.acquire.send_request(
-			url="/nemo/v2/works/174408420/like",
+			url=self.setting.PARAMETER["CLIENT"]["cookie_check_url"],
 			method="post",
 			data=json.dumps({}),
 			headers={**self.acquire.HEADERS, "cookie": cookies},

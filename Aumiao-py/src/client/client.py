@@ -15,6 +15,7 @@ class Union:
 		self.data = data.CodeMaoData()
 		self.file = file.CodeMaoFile()
 		self.setting = data.CodeMaoSetting()
+		self.setting = data.CodeMaoSetting()
 		self.shop_motion = shop.Motion()
 		self.shop_obtain = shop.Obtain()
 		self.tool_process = tool.CodeMaoProcess()
@@ -211,7 +212,7 @@ class Motion(Union):
 				"limit": 200,
 				"offset": item,
 			}
-			query_types = ["LIKE_FORK", "COMMENT_REPLY", "SYSTEM"]
+			query_types = self.setting.PARAMETER["CLIENT"]["all_read_type"]
 			responses = {}
 			for query_type in query_types:
 				params["query_type"] = query_type
