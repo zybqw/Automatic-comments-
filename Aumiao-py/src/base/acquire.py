@@ -2,6 +2,8 @@ import time
 from typing import Literal, cast
 
 import requests
+import requests.cookies
+import requests.utils
 from requests.exceptions import ConnectionError, HTTPError, RequestException, Timeout
 
 from . import data as Data
@@ -14,6 +16,7 @@ session = requests.session()
 @singleton
 class CodeMaoClient:
 	def __init__(self) -> None:
+		"""初始化 CodeMaoClient 实例，设置基本的请求头和基础 URL。"""
 		self.data = Data.CodeMaoSetting()
 		self.tool_process = Tool.CodeMaoProcess()
 		self.HEADERS = self.data.PROGRAM["HEADERS"]
@@ -29,6 +32,17 @@ class CodeMaoClient:
 		headers=None,
 		sleep=0,
 	):
+		"""
+		发送 HTTP 请求。
+
+		:param url: 请求的 URL。
+		:param method: 请求的方法，如 "post", "get", "delete", "patch", "put"。
+		:param params: URL 参数。
+		:param data: 请求体数据。
+		:param headers: 请求头。
+		:param sleep: 请求前的等待时间（秒）。
+		:return: 响应对象或 None（如果请求失败）。
+		"""
 		headers = headers or self.HEADERS
 		url = url if "http" in url else f"{self.BASE_URL}{url}"
 		time.sleep(sleep)
@@ -38,8 +52,10 @@ class CodeMaoClient:
 			return response
 		except (HTTPError, ConnectionError, Timeout, RequestException) as err:
 			print(f"网络请求异常: {err}")
-			print(f"错误码: {response.status_code} 错误信息: {response.text}")  # type: ignore
-			return response  # type: ignore
+			response = cast(requests.Response, None)
+			if response:
+				print(f"错误码: {response.status_code} 错误信息: {response.text}")  # type: ignore
+			return response
 
 	def fetch_data(
 		self,
@@ -58,34 +74,61 @@ class CodeMaoClient:
 			"res_remove_key": "offset",
 		},
 	) -> list[dict]:
+		"""
+		分页获取数据。
+
+		:param url: 请求的 URL。
+		:param params: URL 参数。
+		:param data: 请求体数据。
+		:param limit: 获取数据的最大数量。
+		:param fetch_method: 获取数据的方法，如 "get" 或 "post"。
+		:param total_key: 总数据量的键。
+		:param data_key: 数据项的键。
+		:param method: 分页方法，如 "offset" 或 "page"。
+		:param args: 分页参数的键。
+		:return: 数据列表。
+		"""
 		initial_response = self.send_request(url=url, method=fetch_method, params=params, data=data)
+		if not initial_response:
+			return []
+
 		total_items = int(cast(str, self.tool_process.process_path(initial_response.json(), total_key)))
-		# 尝试从 params 中获取 items_per_page,如果没有则使用初始响应中的值
 		items_per_page = (
-			params[args["amount"]] if "amount" in args.keys() else initial_response.json()[args["res_amount_key"]]
+			params[args["amount"]] if args["amount"] in params else initial_response.json()[args["res_amount_key"]]
 		)
 		total_pages = (total_items + items_per_page - 1) // items_per_page  # 向上取整
 		all_data = []
 		fetch_count = 0
+
 		for page in range(total_pages):
 			if method == "offset":
 				params[args["remove"]] = page * items_per_page
 			elif method == "page":
 				params[args["remove"]] = page + 1
+
 			response = self.send_request(url=url, method=fetch_method, params=params)
+			if not response:
+				continue
+
 			data = self.tool_process.process_path(response.json(), data_key)
 			all_data.extend(data)
 			fetch_count += len(data)
 			if limit and fetch_count >= limit:
 				return all_data[:limit]
+
 		return all_data
 
-	def update_cookie(self, cookie: str):
-		if isinstance(cookie, requests.cookies.RequestsCookieJar):  # type: ignore
+	def update_cookie(self, cookie: requests.cookies.RequestsCookieJar | dict):
+		"""
+		更新会话的 Cookie。
+
+		:param cookie: 要更新的 Cookie，可以是 RequestsCookieJar、字典或字符串。
+		:return: True 如果更新成功。
+		:raises ValueError: 如果 cookie 类型不支持。
+		"""
+		if isinstance(cookie, requests.cookies.RequestsCookieJar):
 			cookie = requests.utils.dict_from_cookiejar(cookie)
-		elif isinstance(cookie, dict):
+		elif not isinstance(cookie, dict):
 			pass
-		else:
-			raise ValueError("不支持的数据类型")
-		session.cookies.update(cookie)  # type: ignore
+		session.cookies.update(cookie)
 		return True

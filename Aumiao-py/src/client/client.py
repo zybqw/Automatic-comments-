@@ -26,8 +26,11 @@ class Union:
 		self.work_obtain = work.Obtain()
 
 
+ClassUnion = Union().__class__
+
+
 @decorator.singleton
-class Tool(Union):
+class Tool(ClassUnion):
 	def __init__(self) -> None:
 		super().__init__()
 
@@ -71,7 +74,7 @@ class Tool(Union):
 
 
 @decorator.singleton
-class Index(Union):
+class Index(ClassUnion):
 	def __init__(self) -> None:
 		super().__init__()
 
@@ -82,7 +85,7 @@ class Index(Union):
 
 
 @decorator.singleton
-class Obtain(Union):
+class Obtain(ClassUnion):
 	def __init__(self) -> None:
 		super().__init__()
 
@@ -157,7 +160,7 @@ class Obtain(Union):
 
 
 @decorator.singleton
-class Motion(Union):
+class Motion(ClassUnion):
 	def __init__(self) -> None:
 		super().__init__()
 
