@@ -19,8 +19,8 @@ class CodeMaoClient:
 		"""初始化 CodeMaoClient 实例，设置基本的请求头和基础 URL。"""
 		self.data = Data.CodeMaoSetting()
 		self.tool_process = Tool.CodeMaoProcess()
-		self.HEADERS = self.data.PROGRAM["HEADERS"]
-		self.BASE_URL = self.data.PROGRAM["BASE_URL"]
+		self.HEADERS: dict = self.data.PROGRAM["HEADERS"]
+		self.BASE_URL: str = self.data.PROGRAM["BASE_URL"]
 		global session  # noqa: PLW0602
 
 	def send_request(
@@ -118,7 +118,7 @@ class CodeMaoClient:
 
 		return all_data
 
-	def update_cookie(self, cookie: requests.cookies.RequestsCookieJar | dict):
+	def update_cookie(self, cookie: requests.cookies.RequestsCookieJar):
 		"""
 		更新会话的 Cookie。
 
@@ -126,9 +126,8 @@ class CodeMaoClient:
 		:return: True 如果更新成功。
 		:raises ValueError: 如果 cookie 类型不支持。
 		"""
-		if isinstance(cookie, requests.cookies.RequestsCookieJar):
-			cookie = requests.utils.dict_from_cookiejar(cookie)
-		elif not isinstance(cookie, dict):
-			pass
+		cookie_dict: dict = requests.utils.dict_from_cookiejar(cookie)
+		cookie_str: str = self.tool_process.process_cookie(cookie_dict)
+		self.HEADERS.update({"Cookie": cookie_str})
 		session.cookies.update(cookie)
 		return True

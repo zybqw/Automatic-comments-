@@ -1,5 +1,4 @@
 import json
-import uuid
 from typing import Literal
 
 import src.base.acquire as Acquire
@@ -42,7 +41,7 @@ class Login:
 				}
 			),
 		)
-		self.check_login(response)
+		self.acquire.update_cookie(response.cookies)
 
 	# cookie登录
 	def login_cookie(self, cookies: str) -> None | bool:
@@ -58,7 +57,7 @@ class Login:
 			data=json.dumps({}),
 			headers={**self.acquire.HEADERS, "cookie": cookies},
 		)
-		self.check_login(response)
+		self.acquire.update_cookie(response.cookies)
 
 	# token登录(毛毡最新登录方式)
 	def login_token(self, identity: str, password: str, pid: str = "65edCTyg"):
@@ -68,29 +67,17 @@ class Login:
 		response = self.get_login_security(identity=identity, password=password, ticket=ticket, pid=pid)
 
 	# 返回完整鉴权cookie
-	def get_login_auth(self, token):
-		# response = src.base_acquire.send_request(url="https://shequ.codemao.cn/",method="get",)
-		# aliyungf_tc = response.cookies.get_dict()["aliyungf_tc"]
-		uuid_ca = uuid.uuid1()
-		token_ca = {"authorization": token, "__ca_uid_key__": str(uuid_ca)}
-		cookie_str = self.tool_process.process_cookie(token_ca)
-		headers = {**self.acquire.HEADERS, "cookie": cookie_str}
-		response = self.acquire.send_request(method="get", url="/web/users/details", headers=headers)
-		_auth = response.cookies.get_dict()
-		auth_cookie = {**token_ca, **_auth}
-		return auth_cookie
-
-	# 检查并保存登录状态
-	def check_login(self, response, cookie=None):
-		if response.status_code == 200:
-			up_cookie = cookie if cookie else response.cookies
-			self.acquire.update_cookie(up_cookie)  # 确保cookies被更新
-			return True
-		elif response.status_code == 403:
-			return "Wrong"
-		else:
-			print(f"登录失败惹,错误码: {response.status_code}")
-			return False
+	# def get_login_auth(self, token):
+	# 	response = src.base_acquire.send_request(url="https://shequ.codemao.cn/",method="get",)
+	# 	aliyungf_tc = response.cookies.get_dict()["aliyungf_tc"]
+	# 	uuid_ca = uuid.uuid1()
+	# 	token_ca = {"authorization": token, "__ca_uid_key__": str(uuid_ca)}
+	# 	cookie_str = self.tool_process.process_cookie(token_ca)
+	# 	headers = {**self.acquire.HEADERS, "cookie": cookie_str}
+	# 	response = self.acquire.send_request(method="get", url="/web/users/details", headers=headers)
+	# 	_auth = response.cookies.get_dict()
+	# 	auth_cookie = {**token_ca, **_auth}
+	# 	return auth_cookie
 
 	# 退出登录
 	def logout(self):
@@ -105,7 +92,6 @@ class Login:
 		ticket: str,
 		pid: str = "65edCTyg",
 		agreement_ids: list = [-1],
-		cookies_ali: dict = {"ca": "", "acw_tc": "", "aliyungf_tc": ""},
 	):
 		data = json.dumps(
 			{
@@ -115,20 +101,13 @@ class Login:
 				"agreement_ids": agreement_ids,
 			}
 		)
-		_ca = {
-			"__ca_uid_key__": str(cookies_ali["ca"]),
-			"acw_tc": cookies_ali["acw_tc"],
-			"aliyungf_tc": cookies_ali["aliyungf_tc"],
-		}
-		cookie_str = self.tool_process.process_cookie(_ca)
-		headers_auth = {**self.acquire.HEADERS, "cookie": cookie_str}
 		response = self.acquire.send_request(
 			url="/tiger/v3/web/accounts/login/security",
 			method="post",
 			data=data,
-			headers={**headers_auth, "x-captcha-ticket": ticket},
+			headers={**self.acquire.HEADERS, "x-captcha-ticket": ticket},
 		)
-		self.check_login(response)
+		self.acquire.update_cookie(response.cookies)
 		return response.json()
 
 	# 登录ticket获取
@@ -141,9 +120,11 @@ class Login:
 		pid: str = "65edCTyg",
 		deviced=None,
 	):
-		_ca = {"__ca_uid_key__": str(cookies_ca)}
-		cookie_str = self.tool_process.process_cookie(_ca)
-		headers = {**self.acquire.HEADERS, "cookie": cookie_str}
+		# 可填可不填
+		# uuid_ca = uuid.uuid1()
+		# _ca = {"__ca_uid_key__": str(uuid_ca)}
+		# cookie_str = self.tool_process.process_cookie(_ca)
+		# headers = {**self.acquire.HEADERS, "cookie": cookie_str}
 		data = json.dumps(
 			{
 				"identity": identity,
@@ -157,8 +138,9 @@ class Login:
 			url="https://open-service.codemao.cn/captcha/rule/v3",
 			method="post",
 			data=data,
-			headers=headers,
+			# headers=headers,
 		)
+		self.acquire.update_cookie(response.cookies)
 		return response.json()
 
 

@@ -47,6 +47,6 @@ class CodeMaoFile:
 			if isinstance(text, str):
 				file.write(text + "\n")
 			elif isinstance(text, dict):
-				file.write(json.dumps(text, ensure_ascii=False, indent=4, sort_keys=False))
+				file.write(json.dumps(text, ensure_ascii=False, indent=4, sort_keys=True))
 			else:
 				raise ValueError("不支持的写入方法")
