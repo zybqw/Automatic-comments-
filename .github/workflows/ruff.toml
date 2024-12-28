@@ -1,13 +1,10 @@
 exclude = [
     ".git",
-    ".mypy_cache",
-    ".pyenv",
     ".pytest_cache",
     ".ruff_cache",
     ".svn",
     ".venv",
     ".vscode",
-    "__pypackages__",
     "video",
     "_build",
     "build",

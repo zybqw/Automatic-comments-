@@ -131,7 +131,6 @@ class Login:
 		self.check_login(response)
 		return response.json()
 
-	#
 	# 登录ticket获取
 	def get_login_ticket(
 		self,
