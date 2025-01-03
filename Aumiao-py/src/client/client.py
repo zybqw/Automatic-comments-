@@ -167,8 +167,11 @@ class Motion(ClassUnion):
 		super().__init__()
 
 	# 清除作品广告的函数
-	def clear_ad(self, keys) -> bool:
+	def clear_ad(self):
 		works_list = self.user_obtain.get_user_works_web(self.data.ACCOUNT_DATA["id"])
+		ads: list[str] = self.data.USER_DATA["ads"]
+		ad_list = []
+
 		for works_item in works_list:
 			work_id = works_item["id"]
 			work_id = cast(int, work_id)
@@ -181,79 +184,95 @@ class Motion(ClassUnion):
 				comment_id = comments_item["id"]
 				content = comments_item["content"].lower()  # 转换小写
 				if (
-					any(item in content for item in keys) and not comments_item["is_top"]  # 取消置顶评论监测
+					any(item in content for item in ads) and not comments_item["is_top"]  # 取消置顶评论监测
 				):
 					print("在作品 {} 中发现广告: {} ".format(works_item["work_name"], content))
-					response = self.work_motion.del_comment_work(
-						work_id=work_id,
-						comment_id=comment_id,
-					)
-					print("*" * 50)
-					if not response:
-						return False
+					ad_list.append(f"{work_id}.{comment_id}")
 				for replies_item in comments_item["replies"]:
 					reply_id = replies_item["id"]
 					reply = replies_item["content"].lower()  # 转换小写
-					if any(item in reply for item in keys):
+					if any(item in reply for item in ads):
 						print("在作品 {} 中 {} 评论中发现广告: {} ".format(works_item["work_name"], content, reply))
-						response = self.work_motion.del_comment_work(
-							work_id=work_id,
-							comment_id=reply_id,
-						)
-						print("*" * 50)
-						if not response:
-							return False
+						ad_list.append(f"{work_id}.{reply_id}")
+
+		print("发现以下广告评论:")
+		for ad in ad_list:
+			print(ad)
+
+		user_input = input("是否删除所有广告评论? (y/n): ")
+		if user_input.lower() == "y":
+			for ad in ad_list:
+				work_id, comment_id = ad.split(".")
+				response = self.work_motion.del_comment_work(
+					work_id=int(work_id),
+					comment_id=int(comment_id),
+				)
+				if not response:
+					print(f"删除广告评论 {ad} 失败")
+					return False
+				print(f"广告评论 {ad} 已删除")
+		else:
+			print("未删除任何广告评论")
+
 		return True
 
 	# 清除邮箱红点
-	def clear_red_point(self, method: Literal["nemo", "web"]):
+	def clear_red_point(self, method: Literal["nemo", "web"] = "web") -> bool:
+		def get_message_counts(method: Literal["web", "nemo"]) -> dict:
+			return self.community_obtain.get_message_count(method)
+
+		def send_clear_request(url: str, params: dict) -> int:
+			response = self.acquire.send_request(url=url, method="get", params=params)
+			return response.status_code
+
 		item = 0
-		while method == "web":
-			counts = self.community_obtain.get_message_count("web")
-			if len(set(counts[i]["count"] for i in range(3)) | {0}) == 1:
-				return True
-			params = {
-				"query_type": "ANYTHING",
-				"limit": 200,
-				"offset": item,
-			}
-			query_types = self.setting.PARAMETER["CLIENT"]["all_read_type"]
-			responses = {}
-			for query_type in query_types:
-				params["query_type"] = query_type
-				responses[query_type] = self.acquire.send_request(
-					url="https://api.codemao.cn/web/message-record",
-					method="get",
-					params=params,
-				).status_code
-			item += 200
-			if len(set(responses.values()) | {200}) != 1:
-				return False
-		while method == "nemo":
-			counts = self.community_obtain.get_message_count("nemo")
-			if (
-				counts["like_collection_count"]
-				+ counts["comment_count"]
-				+ counts["re_create_count"]
-				+ counts["system_count"]
-				== 0
-			):
-				return True
-			params = {
-				"limit": 200,
-				"offset": item,
-			}
-			extra_items = [1, 3]
-			responses = {}
-			for extra_url in extra_items:
-				responses[extra_items] = self.acquire.send_request(
-					url="/nemo/v2/user/message/{extra_url}",
-					method="get",
-					params=params,
-				).status_code
-			item += 200
-			if len(set(responses.values()) | {200}) != 1:
-				return False
+		params = {
+			"limit": 200,
+			"offset": item,
+		}
+
+		if method == "web":
+			while True:
+				counts = get_message_counts(method)
+				if len(set(counts[i]["count"] for i in range(3)) | {0}) == 1:
+					return True
+
+				query_types = self.setting.PARAMETER["CLIENT"]["all_read_type"]
+				responses = {}
+				for query_type in query_types:
+					params["query_type"] = query_type
+					responses[query_type] = send_clear_request(
+						url="https://api.codemao.cn/web/message-record",
+						params=params,
+					)
+				item += 200
+				if len(set(responses.values()) | {200}) != 1:
+					return False
+
+		elif method == "nemo":
+			while True:
+				counts = get_message_counts("nemo")
+				if (
+					counts["like_collection_count"]
+					+ counts["comment_count"]
+					+ counts["re_create_count"]
+					+ counts["system_count"]
+					== 0
+				):
+					return True
+
+				extra_items = [1, 3]
+				responses = {}
+				for extra_url in extra_items:
+					responses[extra_url] = send_clear_request(
+						url=f"/nemo/v2/user/message/{extra_url}",
+						params=params,
+					)
+				item += 200
+				if len(set(responses.values()) | {200}) != 1:
+					return False
+
+		return False
 
 	# 给某人作品全点赞
 	def like_all_work(self, user_id: str):
@@ -265,30 +284,34 @@ class Motion(ClassUnion):
 		return True
 
 	# 自动回复
-	def reply_work(self):
+	def reply_work(self) -> bool:
 		new_replies = Obtain().get_new_replies()
-		_answers = [
+		formatted_answers = [
 			{question: answer.format(**self.data.INFO) for question, answer in answer_dict.items()}
 			for answer_dict in self.data.USER_DATA["answers"]
 		]
-		_replies = [reply.format(**self.data.INFO) for reply in self.data.USER_DATA["replies"]]
+		formatted_replies = [reply.format(**self.data.INFO) for reply in self.data.USER_DATA["replies"]]
 
-		def get_response(comment, answers):
+		def get_response(comment: str, answers: list[dict[str, str]]) -> str | None:
 			for answer_dict in answers:
 				for key, value in answer_dict.items():
 					if key in comment:
 						return value
+			return None
 
 		if new_replies == [{}]:
 			return True
+
 		for item in new_replies:
 			type_item = item["type"]
 			content = loads(cast(str, item["content"]))
 			message = content["message"]
+
 			if type_item in ["WORK_COMMENT", "WORK_REPLY", "WORK_REPLY_REPLY"]:
 				comment_text = message["comment"] if type_item == "WORK_COMMENT" else message["reply"]
-				_answer = get_response(comment=comment_text, answers=_answers)
-				comment = _answer if _answer else choice(_replies)
+				response_comment = get_response(comment=comment_text, answers=formatted_answers)
+				comment = response_comment if response_comment else choice(formatted_replies)
+
 				if type_item == "WORK_COMMENT":
 					self.work_motion.reply_work(
 						work_id=message["business_id"],
@@ -299,7 +322,9 @@ class Motion(ClassUnion):
 				else:
 					parent_id = cast(int, item.get("reference_id", message["replied_id"]))
 					id_list = Obtain().get_comments_detail(work_id=message["business_id"], method="comment_id")
-					comment_id = cast(int, self.tool_routine.find_prefix(number=message["reply_id"], lst=id_list))
+					comment_id = cast(
+						int, self.tool_routine.find_prefix_suffix(text=f".{message["reply_id"]}", lst=id_list)[0]
+					)
 					self.work_motion.reply_work(
 						work_id=message["business_id"],
 						comment_id=comment_id,
@@ -307,6 +332,7 @@ class Motion(ClassUnion):
 						parent_id=parent_id,
 						return_data=True,
 					)
+		return True
 
 	# 工作室常驻置顶
 	def top_work(self):

@@ -396,3 +396,11 @@ class Motion:
 		)
 
 		return response.json()
+
+	# 删除消息
+	def delete_message(self, message_id: int):
+		response = self.acquire.send_request(
+			url=f"/web/message-record/{message_id}",
+			method="delete",
+		)
+		return response.status_code == 204

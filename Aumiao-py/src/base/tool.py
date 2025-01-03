@@ -119,17 +119,20 @@ class CodeMaoRoutine:
 			else:
 				print(f"{key} 没有找到")
 
-	def find_prefix(self, number: str | int, lst: list) -> int | None:
+	def find_prefix_suffix(self, text: str | int, lst: list) -> list[int | None]:
 		"""
-		在列表中找到给定数字前的前缀部分(以 "." 分隔).
+		在列表中找到给定数字前的前缀部分和后缀部分(以 "." 分隔).
 
 		:param number: 目标数字,整数或字符串.
 		:param lst: 包含字符串和整数的混合列表.
-		:return: 前缀部分(整数),如果未找到返回 None.
+		:return: 前缀部分和后缀部分(整数),如果未找到返回 (None, None).
 		"""
 		for item in lst:
-			if isinstance(item, str) and f".{number}" in item:
-				prefix = item.split(f".{number}")[0]
-				if prefix.isdigit():
-					return int(prefix)
-		return None
+			if isinstance(item, str) and "{text}" in item:
+				parts = item.split(f"{text}")
+				prefix = parts[0]
+				suffix = parts[1] if len(parts) > 1 else None
+				prefix = int(prefix) if prefix.isdigit() else None
+				suffix = int(suffix) if suffix and suffix.isdigit() else None
+				return [prefix, suffix]
+		return [None, None]
