@@ -1,13 +1,13 @@
 import json
-import os
+from os import getcwd, path
 from typing import Any, cast
 
 from . import file as File
 from .decorator import singleton
 
-DATA_FILE_PATH: str = os.path.join(os.getcwd(), "data/" "data.json")
-CACHE_FILE_PATH: str = os.path.join(os.getcwd(), "data/" "cache.json")
-SETTING_FILE_PATH: str = os.path.join(os.getcwd(), "data/" "setting.json")
+DATA_FILE_PATH: str = path.join(getcwd(), "data", "data.json")
+CACHE_FILE_PATH: str = path.join(getcwd(), "data", "cache.json")
+SETTING_FILE_PATH: str = path.join(getcwd(), "data", "setting.json")
 
 
 # 该字典不可单例

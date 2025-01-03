@@ -1,4 +1,5 @@
 import time
+from os import getcwd, path
 from typing import Literal, cast
 
 import requests
@@ -7,10 +8,13 @@ import requests.utils
 from requests.exceptions import ConnectionError, HTTPError, RequestException, Timeout
 
 from . import data as Data
+from . import file as File
 from . import tool as Tool
 from .decorator import singleton
 
 session = requests.session()
+
+LOG_FILE_PATH: str = path.join(getcwd(), "log", f"{int(time.time())}.txt")
 
 
 @singleton
@@ -19,6 +23,7 @@ class CodeMaoClient:
 		"""初始化 CodeMaoClient 实例,设置基本的请求头和基础 URL."""
 		self.data = Data.CodeMaoSetting()
 		self.tool_process = Tool.CodeMaoProcess()
+		self.file = File.CodeMaoFile()
 		self.HEADERS: dict = self.data.PROGRAM["HEADERS"]
 		self.BASE_URL: str = "https://api.codemao.cn"
 		global session  # noqa: PLW0602
@@ -31,6 +36,7 @@ class CodeMaoClient:
 		data=None,
 		headers=None,
 		sleep=0,
+		log: Literal[True, False] = True,
 	):
 		"""
 		发送 HTTP 请求.
@@ -49,12 +55,25 @@ class CodeMaoClient:
 		try:
 			response = session.request(method=method, url=url, headers=headers, params=params, data=data)
 			response.raise_for_status()
+			if log:
+				log_content = [
+					"*" * 100,
+					f"请求url: {response.url}",
+					f"请求方法: {response.request.method}",
+					f"状态码: {response.status_code}",
+					f"请求头: {response.request.headers}",
+					f"请求体: {response.request.body}",
+					f"响应头: {response.headers}",
+					f"响应体: {response.text}",
+				]
+				self.file.file_write(path=LOG_FILE_PATH, content=log_content, method="a")
+
 			return response
 		except (HTTPError, ConnectionError, Timeout, RequestException) as err:
 			print(f"网络请求异常: {err}")
 			response = cast(requests.Response, None)
 			if response:
-				print(f"错误码: {response.status_code} 错误信息: {response.text}")  # type: ignore
+				print(f"错误码: {response.status_code} 错误原因: {response.reason} 错误信息: {response.text}")  # type: ignore
 			return response
 
 	def fetch_data(
