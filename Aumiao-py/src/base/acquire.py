@@ -20,7 +20,7 @@ class CodeMaoClient:
 		self.data = Data.CodeMaoSetting()
 		self.tool_process = Tool.CodeMaoProcess()
 		self.HEADERS: dict = self.data.PROGRAM["HEADERS"]
-		self.BASE_URL: str = self.data.PROGRAM["BASE_URL"]
+		self.BASE_URL: str = "https://api.codemao.cn"
 		global session  # noqa: PLW0602
 
 	def send_request(
