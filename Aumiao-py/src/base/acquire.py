@@ -16,7 +16,7 @@ session = requests.session()
 @singleton
 class CodeMaoClient:
 	def __init__(self) -> None:
-		"""初始化 CodeMaoClient 实例，设置基本的请求头和基础 URL。"""
+		"""初始化 CodeMaoClient 实例,设置基本的请求头和基础 URL."""
 		self.data = Data.CodeMaoSetting()
 		self.tool_process = Tool.CodeMaoProcess()
 		self.HEADERS: dict = self.data.PROGRAM["HEADERS"]
@@ -33,15 +33,15 @@ class CodeMaoClient:
 		sleep=0,
 	):
 		"""
-		发送 HTTP 请求。
+		发送 HTTP 请求.
 
-		:param url: 请求的 URL。
-		:param method: 请求的方法，如 "post", "get", "delete", "patch", "put"。
-		:param params: URL 参数。
-		:param data: 请求体数据。
-		:param headers: 请求头。
-		:param sleep: 请求前的等待时间（秒）。
-		:return: 响应对象或 None（如果请求失败）。
+		:param url: 请求的 URL.
+		:param method: 请求的方法,如 "post", "get", "delete", "patch", "put".
+		:param params: URL 参数.
+		:param data: 请求体数据.
+		:param headers: 请求头.
+		:param sleep: 请求前的等待时间(秒).
+		:return: 响应对象或 None(如果请求失败).
 		"""
 		headers = headers or self.HEADERS
 		url = url if "http" in url else f"{self.BASE_URL}{url}"
@@ -75,18 +75,18 @@ class CodeMaoClient:
 		},
 	) -> list[dict]:
 		"""
-		分页获取数据。
+		分页获取数据.
 
-		:param url: 请求的 URL。
-		:param params: URL 参数。
-		:param data: 请求体数据。
-		:param limit: 获取数据的最大数量。
-		:param fetch_method: 获取数据的方法，如 "get" 或 "post"。
-		:param total_key: 总数据量的键。
-		:param data_key: 数据项的键。
-		:param method: 分页方法，如 "offset" 或 "page"。
-		:param args: 分页参数的键。
-		:return: 数据列表。
+		:param url: 请求的 URL.
+		:param params: URL 参数.
+		:param data: 请求体数据.
+		:param limit: 获取数据的最大数量.
+		:param fetch_method: 获取数据的方法,如 "get" 或 "post".
+		:param total_key: 总数据量的键.
+		:param data_key: 数据项的键.
+		:param method: 分页方法,如 "offset" 或 "page".
+		:param args: 分页参数的键.
+		:return: 数据列表.
 		"""
 		initial_response = self.send_request(url=url, method=fetch_method, params=params, data=data)
 		if not initial_response:
@@ -120,11 +120,11 @@ class CodeMaoClient:
 
 	def update_cookie(self, cookie: requests.cookies.RequestsCookieJar):
 		"""
-		更新会话的 Cookie。
+		更新会话的 Cookie.
 
-		:param cookie: 要更新的 Cookie，可以是 RequestsCookieJar、字典或字符串。
-		:return: True 如果更新成功。
-		:raises ValueError: 如果 cookie 类型不支持。
+		:param cookie: 要更新的 Cookie,可以是 RequestsCookieJar、字典或字符串.
+		:return: True 如果更新成功.
+		:raises ValueError: 如果 cookie 类型不支持.
 		"""
 		cookie_dict: dict = requests.utils.dict_from_cookiejar(cookie)
 		cookie_str: str = self.tool_process.process_cookie(cookie_dict)

@@ -141,8 +141,8 @@ class Chat:
 		data = json.dumps(
 			{
 				"chatid": "",  # ai回答
-				"humanid": "",  # 随机生成：p938bndy9lvueh5fok61721280190544
-				"assistantid": "",  # 随机生成：fiz55pci3fobe7g00j91721280158062
+				"humanid": "",  # 随机生成: p938bndy9lvueh5fok61721280190544
+				"assistantid": "",  # 随机生成: fiz55pci3fobe7g00j91721280158062
 				"chattitle": "",  # 默认为首次对话prompt
 				"prompt": "",  # 人类提问内容
 				"answer": "",  # 机器人回答
