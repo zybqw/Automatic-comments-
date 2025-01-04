@@ -194,19 +194,6 @@ class Obtain:
 		response = self.acquire.send_request(url=url, method="get")
 		return response.json()
 
-	# 清除邮箱红点
-	def all_read(self, query_types: list[Literal["LIKE_FORK", "COMMENT_REPLY", "SYSTEM"]]) -> bool:
-		offset = 0
-		while True:
-			record = self.get_message_count(method="web")
-			type_to_count = {item["query_type"]: item["count"] for item in record}
-			if all(type_to_count.get(type, 0) == 0 for type in query_types):
-				return True  # 所有消息类型处理完毕
-			# 如果还有未处理的消息,按类型查询并清理
-			for query_type in query_types:
-				self.get_replies(type=query_type, limit=200, offset=offset)
-			offset += 200
-
 	# 获取点个猫更新
 	def get_update_message(self):
 		response = self.acquire.send_request(url="https://update.codemao.cn/updatev2/appsdk", method="get")

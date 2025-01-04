@@ -262,6 +262,7 @@ class Motion(ClassUnion):
 					return True
 
 				extra_items = [1, 3]
+				# like为1,fork为3
 				responses = {}
 				for extra_url in extra_items:
 					responses[extra_url] = send_clear_request(
