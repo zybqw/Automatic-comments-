@@ -5,7 +5,7 @@ from .decorator import singleton
 
 @singleton
 class CodeMaoProcess:
-	def process_reject(
+	def filter_data(
 		self,
 		data: list | dict,
 		reserve: list | None = None,
@@ -38,7 +38,7 @@ class CodeMaoProcess:
 		else:
 			raise ValueError("不支持的数据类型")
 
-	def process_shielding(self, content: str) -> str:
+	def insert_zero_width_chars(self, content: str) -> str:
 		"""
 		对输入字符串进行特殊字符插入处理(用于屏蔽).
 
@@ -49,7 +49,7 @@ class CodeMaoProcess:
 		result = b"\xe2\x80\x8b".join(content_bytes).decode("UTF-8")
 		return result
 
-	def process_timestamp(self, timestamp: int) -> str:
+	def format_timestamp(self, timestamp: int) -> str:
 		"""
 		将时间戳转换为人类可读的时间格式.
 
@@ -60,7 +60,7 @@ class CodeMaoProcess:
 		style_time = time.strftime("%Y-%m-%d %H:%M:%S", time_array)
 		return style_time
 
-	def process_path(self, data: dict, path: str | None) -> dict:
+	def get_nested_value(self, data: dict, path: str | None) -> dict:
 		"""
 		通过点分隔的键路径,从嵌套字典中获取对应的值.
 
@@ -77,7 +77,7 @@ class CodeMaoProcess:
 			value = value.get(key, {})
 		return value
 
-	def process_cookie(self, cookie: dict) -> str:
+	def convert_cookie_to_str(self, cookie: dict) -> str:
 		"""
 		将字典形式的 Cookie 转换为 HTTP 请求头中显示的字符串形式.
 
@@ -86,6 +86,19 @@ class CodeMaoProcess:
 		"""
 		cookie_str = "; ".join([f"{key}={value}" for key, value in cookie.items()])
 		return cookie_str
+
+	def filter_items_by_value(self, data: dict, id_path: str, value: str) -> list[dict]:
+		"""
+		过滤数据，保留指定路径的值等于给定值的字典。
+
+		:param data: 输入的数据字典。
+		:param id_path: 点分隔的键路径，用于获取嵌套字典中的值。
+		:param value: 要匹配的值。
+		:return: 过滤后的字典列表。
+		"""
+		items = data.get("items", [])
+		filtered_items = [item for item in items if self.get_nested_value(item, id_path) == value]
+		return filtered_items
 
 
 class CodeMaoRoutine:
@@ -98,7 +111,7 @@ class CodeMaoRoutine:
 		timestamp = time.time()
 		return timestamp
 
-	def print_changes(self, before_data: dict, after_data: dict, data: dict, date: str | None):
+	def display_data_changes(self, before_data: dict, after_data: dict, data: dict, date: str | None):
 		"""
 		打印数据变化情况,包括起始时间和变化内容.
 
@@ -108,8 +121,8 @@ class CodeMaoRoutine:
 		:param date: 用于转换时间戳的键(可选).
 		"""
 		if date:
-			_before_date = CodeMaoProcess().process_timestamp(before_data[date])
-			_after_date = CodeMaoProcess().process_timestamp(after_data[date])
+			_before_date = CodeMaoProcess().format_timestamp(before_data[date])
+			_after_date = CodeMaoProcess().format_timestamp(after_data[date])
 			print(f"从{_before_date}到{_after_date}期间")
 
 		for key, label in data.items():
@@ -119,7 +132,7 @@ class CodeMaoRoutine:
 			else:
 				print(f"{key} 没有找到")
 
-	def find_prefix_suffix(self, text: str | int, lst: list) -> list[int | None]:
+	def find_prefix_suffix(self, text: str, lst: list) -> list[int | None]:
 		"""
 		在列表中找到给定数字前的前缀部分和后缀部分(以 "." 分隔).
 

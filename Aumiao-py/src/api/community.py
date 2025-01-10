@@ -72,7 +72,7 @@ class Login:
 	# 	aliyungf_tc = response.cookies.get_dict()["aliyungf_tc"]
 	# 	uuid_ca = uuid.uuid1()
 	# 	token_ca = {"authorization": token, "__ca_uid_key__": str(uuid_ca)}
-	# 	cookie_str = self.tool_process.process_cookie(token_ca)
+	# 	cookie_str = self.tool_process.convert_cookie_to_str(token_ca)
 	# 	headers = {**self.acquire.HEADERS, "cookie": cookie_str}
 	# 	response = self.acquire.send_request(method="get", url="/web/users/details", headers=headers)
 	# 	_auth = response.cookies.get_dict()
@@ -123,7 +123,7 @@ class Login:
 		# 可填可不填
 		# uuid_ca = uuid.uuid1()
 		# _ca = {"__ca_uid_key__": str(uuid_ca)}
-		# cookie_str = self.tool_process.process_cookie(_ca)
+		# cookie_str = self.tool_process.convert_cookie_to_str(_ca)
 		# headers = {**self.acquire.HEADERS, "cookie": cookie_str}
 		data = json.dumps(
 			{
@@ -188,8 +188,8 @@ class Obtain:
 		return response.json()
 
 	# 获取nemo消息
-	def get_nemo_message(self, method: Literal["fork", "like"]):
-		extra_url = 1 if method == "like" else 3
+	def get_nemo_message(self, type: Literal["fork", "like"]):
+		extra_url = 1 if type == "like" else 3
 		url = f"/nemo/v2/user/message/{extra_url}"
 		response = self.acquire.send_request(url=url, method="get")
 		return response.json()

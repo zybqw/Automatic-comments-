@@ -111,7 +111,7 @@ class CodeMaoClient:
 		if not initial_response:
 			return []
 
-		total_items = int(cast(str, self.tool_process.process_path(initial_response.json(), total_key)))
+		total_items = int(cast(str, self.tool_process.get_nested_value(initial_response.json(), total_key)))
 		items_per_page = (
 			params[args["amount"]] if args["amount"] in params else initial_response.json()[args["res_amount_key"]]
 		)
@@ -129,7 +129,7 @@ class CodeMaoClient:
 			if not response:
 				continue
 
-			data = self.tool_process.process_path(response.json(), data_key)
+			data = self.tool_process.get_nested_value(response.json(), data_key)
 			all_data.extend(data)
 			fetch_count += len(data)
 			if limit and fetch_count >= limit:
@@ -146,7 +146,7 @@ class CodeMaoClient:
 		:raises ValueError: 如果 cookie 类型不支持.
 		"""
 		cookie_dict: dict = requests.utils.dict_from_cookiejar(cookie)
-		cookie_str: str = self.tool_process.process_cookie(cookie_dict)
+		cookie_str: str = self.tool_process.convert_cookie_to_str(cookie_dict)
 		self.HEADERS.update({"Cookie": cookie_str})
 		session.cookies.update(cookie)
 		return True

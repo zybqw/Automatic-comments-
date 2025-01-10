@@ -50,7 +50,7 @@ class Tool(ClassUnion):
 		}
 		before_data = self.cache.CACHE
 		if before_data != {}:
-			self.tool_routine.print_changes(
+			self.tool_routine.display_data_changes(
 				before_data=before_data,
 				after_data=user_data,
 				data={
@@ -81,7 +81,7 @@ class Index(ClassUnion):
 	# 打印slogan
 	def index(self):
 		print(self.setting.PROGRAM["SLOGAN"])
-		print(f"版本号: {self.setting.PROGRAM["VERSION"]}")
+		print(f"版本号: {self.setting.PROGRAM['VERSION']}")
 		print("编程猫社区行为守则 https://shequ.codemao.cn/community/1619098")
 		print("2025编程猫拜年祭活动 https://shequ.codemao.cn/community/1619855")
 
@@ -324,7 +324,7 @@ class Motion(ClassUnion):
 					parent_id = cast(int, item.get("reference_id", message["replied_id"]))
 					id_list = Obtain().get_comments_detail(work_id=message["business_id"], method="comment_id")
 					comment_id = cast(
-						int, self.tool_routine.find_prefix_suffix(text=f".{message["reply_id"]}", lst=id_list)[0]
+						int, self.tool_routine.find_prefix_suffix(text=f".{message['reply_id']}", lst=id_list)[0]
 					)
 					self.work_motion.reply_work(
 						work_id=message["business_id"],
