@@ -2,7 +2,7 @@ from json import loads
 from random import choice
 from typing import Literal, cast
 
-from src.api import community, shop, user, work
+from src.api import community, forum, shop, user, work
 from src.base import acquire, data, decorator, file, tool
 
 
@@ -14,6 +14,8 @@ class Union:
 		self.community_obtain = community.Obtain()
 		self.data = data.CodeMaoData()
 		self.file = file.CodeMaoFile()
+		self.forum_motion = forum.Motion()
+		self.forum_obtain = forum.Obtain()
 		self.setting = data.CodeMaoSetting()
 		self.setting = data.CodeMaoSetting()
 		self.shop_motion = shop.Motion()
@@ -300,6 +302,11 @@ class Motion(ClassUnion):
 						return value
 			return None
 
+		new_replies = self.tool_process.filter_items_by_values(
+			data=new_replies,
+			id_path="type",
+			values=["WORK_COMMENT", "WORK_REPLY", "WORK_REPLY_REPLY", "POST_COMMENT", "POST_REPLY", "POST_REPLY_REPLY"],
+		)
 		if new_replies == [{}]:
 			return True
 
@@ -307,17 +314,18 @@ class Motion(ClassUnion):
 			type_item = item["type"]
 			content = loads(cast(str, item["content"]))
 			message = content["message"]
+			comment_text = message["comment"] if type_item == "WORK_COMMENT" or "POST_COMMENT" else message["reply"]
+			response_comment = get_response(comment=comment_text, answers=formatted_answers)
+			comment = response_comment if response_comment else choice(formatted_replies)
 
 			if type_item in ["WORK_COMMENT", "WORK_REPLY", "WORK_REPLY_REPLY"]:
-				comment_text = message["comment"] if type_item == "WORK_COMMENT" else message["reply"]
-				response_comment = get_response(comment=comment_text, answers=formatted_answers)
-				comment = response_comment if response_comment else choice(formatted_replies)
-
 				if type_item == "WORK_COMMENT":
+					comment_id = cast(int, item.get("reference_id", message["comment_id"]))
 					self.work_motion.reply_work(
 						work_id=message["business_id"],
-						comment_id=message["comment_id"],
+						comment_id=comment_id,
 						comment=comment,
+						parent_id=0,
 						return_data=True,
 					)
 				else:
@@ -332,6 +340,21 @@ class Motion(ClassUnion):
 						comment=comment,
 						parent_id=parent_id,
 						return_data=True,
+					)
+			if type_item in ["POST_COMMENT", "POST_REPLY", "POST_REPLY_REPLY"]:
+				if type_item == "POST_COMMENT":
+					comment_id = cast(int, item.get("reference_id", message["comment_id"]))
+					self.forum_motion.reply_comment(
+						reply_id=comment_id,
+						parent_id=0,
+						content=comment,
+					)
+				else:
+					parent_id = cast(int, item.get("reference_id", message["replied_id"]))
+					self.forum_motion.reply_comment(
+						reply_id=message["comment_id"],
+						parent_id=parent_id,
+						content=comment,
 					)
 		return True
 
