@@ -87,17 +87,23 @@ class CodeMaoProcess:
 		cookie_str = "; ".join([f"{key}={value}" for key, value in cookie.items()])
 		return cookie_str
 
-	def filter_items_by_value(self, data: dict, id_path: str, value: str) -> list[dict]:
+	def filter_items_by_values(self, data: list[dict] | dict, id_path: str, values: list[str]) -> list[dict]:
 		"""
-		过滤数据，保留指定路径的值等于给定值的字典。
+		过滤数据，保留指定路径的值等于给定值列表中任意一个的字典。
 
-		:param data: 输入的数据字典。
+		:param data: 输入的数据字典或字典列表。
 		:param id_path: 点分隔的键路径，用于获取嵌套字典中的值。
-		:param value: 要匹配的值。
+		:param values: 要匹配的值列表。
 		:return: 过滤后的字典列表。
 		"""
-		items = data.get("items", [])
-		filtered_items = [item for item in items if self.get_nested_value(item, id_path) == value]
+		if isinstance(data, dict):
+			items = data.get("items", [])
+		elif isinstance(data, list):
+			items = data
+		else:
+			raise ValueError("不支持的数据类型")
+
+		filtered_items = [item for item in items if self.get_nested_value(item, id_path) in values]
 		return filtered_items
 
 
