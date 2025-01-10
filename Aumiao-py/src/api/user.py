@@ -311,6 +311,15 @@ class Obtain:
 		)
 		return collects
 
+	# https://api.codemao.cn/creation-tools/v1/user/avatar-frame/list
+	# 获取用户头像框列表
+	def get_user_avatar_frame(self):
+		response = self.acquire.send_request(
+			url="/creation-tools/v1/user/avatar-frame/list",
+			method="get",
+		)
+		return response.json()
+
 
 @singleton
 class Motion:
@@ -372,3 +381,30 @@ class Motion:
 			data=data,
 		)
 		return response.json()
+
+	# 设置nemo头像,昵称,个性签名
+	def set_nemo_basic(self, nickname: str, description: str):
+		data = {
+			key: value for key, value in [("nickname", nickname), ("description", description)] if value is not None
+		}
+		if not data:
+			raise ValueError("至少需要传入一个参数")
+		response = self.acquire.send_request(url="/nemo/v2/user/basic", method="put", data=data)
+		return response.status_code == 200
+
+	# 取消设置头像框
+	def cancel_avatar_frame(self):
+		response = self.acquire.send_request(
+			url="/creation-tools/v1/user/avatar-frame/cancel",
+			method="put",
+		)
+		return response.status_code == 200
+
+	# 设置头像框
+	# id 2,3,4 代表Lv2,3,4头像框
+	def set_avatar_frame(self, frame_id: Literal[2, 3, 4]):
+		response = self.acquire.send_request(
+			url=f"/creation-tools/v1/user/avatar-frame/{frame_id}",
+			method="put",
+		)
+		return response.status_code == 200
