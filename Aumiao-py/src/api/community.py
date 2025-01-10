@@ -227,7 +227,8 @@ class Obtain:
 		response = self.acquire.send_request(url="/web/reports/reasons/all", method="get")
 		return response.json()
 
-	# 获取nemo配置 TODO:待完善
+	# 获取nemo配置
+	# TODO:待完善
 	def get_nemo_config(self) -> str:
 		response = self.acquire.send_request(url="https://nemo.codemao.cn/config", method="get")
 		return response.json()
@@ -302,7 +303,8 @@ class Obtain:
 		)
 		return course
 
-	# 获取社区各个部分开启状态 TODO:待完善
+	# 获取社区各个部分开启状态
+	# TODO:待完善
 	def get_community_status(self, type: Literal["WEB_FORUM_STATUS", "WEB_FICTION_STATUS"]):
 		response = self.acquire.send_request(url=f"/web/config/tab/on-off/status?config_type={type}", method="get")
 		return response.json()

@@ -541,6 +541,13 @@ class Obtain:
 		response = self.acquire.send_request(url=f"/nemo/v3/work-subject/{id}/works", method="get", params=params)
 		return response.json()
 
+	# https://api.codemao.cn/nemo/v3/work-subject/home?offset=0&limit=15
+	# 获取各个主题下的作品
+	def get_subject_works_nemo(self, limit: int = 15, offset: int = 0):
+		params = {"limit": limit, "offset": offset}
+		response = self.acquire.send_request(url="/nemo/v3/work-subject/home", method="get", params=params)
+		return response.json()
+
 	# 获取协作邀请码
 	def get_coll_code(self, work_id: int, method: Literal["get", "delete"] = "get"):
 		response = self.acquire.send_request(
@@ -745,5 +752,26 @@ class Obtain:
 			url="https://api-creation.codemao.cn/neko/package/list",
 			method="get",
 			params=params,
+		)
+		return response.json()
+
+	# 获取动态里面的作品(包括收藏的作品,关注的人的作品)
+	def get_dynamic_works(self, limit: int = 15, offset: int = 0):
+		params = {
+			"limit": limit,
+			"offset": offset,
+		}
+		response = self.acquire.send_request(
+			url="/nemo/v3/work/dynamic",
+			method="get",
+			params=params,
+		)
+		return response.json()
+
+	# 获取动态推荐的人
+	def get_dynamic_focus_user(self):
+		response = self.acquire.send_request(
+			url="/nemo/v3/dynamic/focus/user/recommend",
+			method="get",
 		)
 		return response.json()

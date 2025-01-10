@@ -90,7 +90,8 @@ class Obtain:
 		response = self.acquire.send_request(url="/web/forums/notice-boards", method="get", params=params)
 		return response.json()
 
-	# 获取论坛本周精选帖子 TODO: 待完善
+	# 获取论坛本周精选帖子
+	# TODO: 待完善
 	def get_key_content(self, content_key: Literal["forum.index.top.recommend"], limit: int = 4):
 		params = {"content_key": content_key, "limit": limit}
 		response = self.acquire.send_request(url="/web/contents/get-key", method="get", params=params)
