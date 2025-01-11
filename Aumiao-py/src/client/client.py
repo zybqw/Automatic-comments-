@@ -189,50 +189,65 @@ class Motion(ClassUnion):
 	def __init__(self) -> None:
 		super().__init__()
 
-	# 清除作品广告的函数
-	def clear_ad(self):
-		works_list = self.user_obtain.get_user_works_web(self.data.ACCOUNT_DATA["id"])
+	def clear_ads(self, source: Literal["work", "post"]) -> bool:
+		if source == "work":
+			items_list = self.user_obtain.get_user_works_web(self.data.ACCOUNT_DATA["id"])
+			get_comments = lambda item_id: Obtain().get_comments_detail(id=item_id, source="work", method="comments")
+			delete_comment = lambda item_id, comment_id: self.work_motion.del_comment_work(
+				work_id=item_id, comment_id=comment_id
+			)
+		elif source == "post":
+			items_list = self.forum_obtain.get_post_mine_all(method="created")
+			get_comments = lambda item_id: Obtain().get_comments_detail(id=item_id, source="post", method="comments")
+			delete_comment = lambda item_id, comment_id: self.forum_motion.delete_comment_post_reply(
+				id=comment_id, type="replies"
+			)
+		else:
+			raise ValueError("不支持的来源类型")
+
 		ads: list[str] = self.data.USER_DATA["ads"]
 		ad_list = []
 
-		for works_item in works_list:
-			work_id = works_item["id"]
-			work_id = cast(int, work_id)
-			works_item["id"] = cast(int, works_item["id"])
-			comments: list = Obtain().get_comments_detail(id=works_item["id"], source="work", method="comments")
-			for comments_item in comments:
-				comment_id = comments_item["id"]
-				content = comments_item["content"].lower()  # 转换小写
-				if (
-					any(item in content for item in ads) and not comments_item["is_top"]  # 取消置顶评论监测
-				):
-					print("在作品 {} 中发现广告: {} ".format(works_item["work_name"], content))
-					ad_list.append(f"{work_id}.{comment_id}")
-				for replies_item in comments_item["replies"]:
-					reply_id = replies_item["id"]
-					reply = replies_item["content"].lower()  # 转换小写
-					if any(item in reply for item in ads):
-						print("在作品 {} 中 {} 评论中发现广告: {} ".format(works_item["work_name"], content, reply))
-						ad_list.append(f"{work_id}.{reply_id}")
+		for item in items_list:
+			item_id = int(item["id"])
+			comments = get_comments(item_id)
+			comments = cast(list[dict], comments)
 
-		print("发现以下广告评论:")
-		for ad in ad_list:
-			print(ad)
+			for comment in comments:
+				comment_id = comment["id"]
+				content = comment["content"].lower()
 
-		user_input = input("是否删除所有广告评论? (y/n): ")
-		if user_input.lower() == "y":
+				if any(ad in content for ad in ads) and not comment.get("is_top", False):
+					print(f"在{source} {item['title' if source == 'post' else 'work_name']} 中发现广告: {content}")
+					ad_list.append(f"{item_id}.{comment_id}")
+
+				for reply in comment["replies"]:
+					reply_id = reply["id"]
+					reply_content = reply["content"].lower()
+
+					if any(ad in reply_content for ad in ads):
+						print(
+							f"在{source} {item['title' if source == 'post' else 'work_name']} 中 {content} 评论中发现广告: {reply_content}"  # noqa: E501
+						)
+						ad_list.append(f"{item_id}.{reply_id}")
+
+		if ad_list:
+			print("发现以下广告评论:")
 			for ad in ad_list:
-				work_id, comment_id = ad.split(".")
-				response = self.work_motion.del_comment_work(
-					work_id=int(work_id),
-					comment_id=int(comment_id),
-				)
-				if not response:
-					print(f"删除广告评论 {ad} 失败")
-					return False
-				print(f"广告评论 {ad} 已删除")
+				print(ad)
+
+			user_input = input("是否删除所有广告评论? (y/n): ").strip().lower()
+			if user_input == "y":
+				for ad in ad_list:
+					item_id, comment_id = map(int, ad.split("."))
+					if not delete_comment(item_id, comment_id):
+						print(f"删除广告评论 {ad} 失败")
+						return False
+					print(f"广告评论 {ad} 已删除")
+			else:
+				print("未删除任何广告评论")
 		else:
-			print("未删除任何广告评论")
+			print("未发现广告评论")
 
 		return True
 
@@ -373,7 +388,7 @@ class Motion(ClassUnion):
 				else:
 					parent_id = cast(int, reply.get("reference_id", message["replied_id"]))
 					comment_ids = Obtain().get_comments_detail(id=business_id, source="post", method="comment_id")
-					comment_ids=cast(list[str], comment_ids)
+					comment_ids = cast(list[str], comment_ids)
 					comment_id = cast(
 						int, self.tool_routine.find_prefix_suffix(text=message["reply_id"], lst=comment_ids)[0]
 					)
