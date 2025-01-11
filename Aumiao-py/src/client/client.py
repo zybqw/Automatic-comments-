@@ -199,10 +199,7 @@ class Motion(ClassUnion):
 			work_id = works_item["id"]
 			work_id = cast(int, work_id)
 			works_item["id"] = cast(int, works_item["id"])
-			comments: list = Obtain().get_work_comments_detail(
-				work_id=works_item["id"],
-				method="comments",
-			)
+			comments: list = Obtain().get_comments_detail(id=works_item["id"], source="work", method="comments")
 			for comments_item in comments:
 				comment_id = comments_item["id"]
 				content = comments_item["content"].lower()  # 转换小写
@@ -351,7 +348,9 @@ class Motion(ClassUnion):
 					)
 				else:
 					parent_id = cast(int, item.get("reference_id", message["replied_id"]))
-					id_list = Obtain().get_work_comments_detail(work_id=message["business_id"], method="comment_id")
+					id_list = Obtain().get_comments_detail(
+						id=message["business_id"], source="work", method="comment_id"
+					)
 					comment_id = cast(
 						int, self.tool_routine.find_prefix_suffix(text=f".{message['reply_id']}", lst=id_list)[0]
 					)
