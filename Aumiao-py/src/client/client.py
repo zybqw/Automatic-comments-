@@ -315,69 +315,67 @@ class Motion(ClassUnion):
 
 		def get_response(comment: str, answers: list[dict[str, str]]) -> str | None:
 			for answer_dict in answers:
-				for key, value in answer_dict.items():
-					if key in comment:
-						return value
+				for keyword, response in answer_dict.items():
+					if keyword in comment:
+						return response
 			return None
 
-		new_replies = self.tool_process.filter_items_by_values(
+		filtered_replies = self.tool_process.filter_items_by_values(
 			data=new_replies,
 			id_path="type",
 			values=["WORK_COMMENT", "WORK_REPLY", "WORK_REPLY_REPLY", "POST_COMMENT", "POST_REPLY", "POST_REPLY_REPLY"],
 		)
-		if new_replies == [{}]:
+		if not filtered_replies or filtered_replies == [{}]:
 			return True
 
-		for item in new_replies:
-			type_item = item["type"]
-			content = loads(cast(str, item["content"]))
+		for reply in filtered_replies:
+			reply_type = reply["type"]
+			content = loads(cast(str, reply["content"]))
 			message = content["message"]
-			comment_text = message["comment"] if type_item in ["WORK_COMMENT", "POST_COMMENT"] else message["reply"]
+			comment_text = message["comment"] if reply_type in ["WORK_COMMENT", "POST_COMMENT"] else message["reply"]
 			response_comment = get_response(comment=comment_text, answers=formatted_answers)
 			comment = response_comment if response_comment else choice(formatted_replies)
 
-			if type_item in ["WORK_COMMENT", "WORK_REPLY", "WORK_REPLY_REPLY"]:
-				if type_item == "WORK_COMMENT":
-					comment_id = cast(int, item.get("reference_id", message["comment_id"]))
+			if reply_type.startswith("WORK"):
+				business_id = message["business_id"]
+				if reply_type == "WORK_COMMENT":
+					comment_id = cast(int, reply.get("reference_id", message["comment_id"]))
 					self.work_motion.reply_work(
-						work_id=message["business_id"],
+						work_id=business_id,
 						comment_id=comment_id,
 						comment=comment,
 						parent_id=0,
 						return_data=True,
 					)
 				else:
-					parent_id = cast(int, item.get("reference_id", message["replied_id"]))
-					id_list = Obtain().get_comments_detail(
-						id=message["business_id"], source="work", method="comment_id"
-					)
-					id_list = cast(list[str], id_list)
+					parent_id = cast(int, reply.get("reference_id", message["replied_id"]))
+					comment_ids = Obtain().get_comments_detail(id=business_id, source="work", method="comment_id")
+					comment_ids = cast(list[str], comment_ids)
 					comment_id = cast(
-						int, self.tool_routine.find_prefix_suffix(text=f".{message['reply_id']}", lst=id_list)[0]
+						int, self.tool_routine.find_prefix_suffix(text=f".{message['reply_id']}", lst=comment_ids)[0]
 					)
 					self.work_motion.reply_work(
-						work_id=message["business_id"],
+						work_id=business_id,
 						comment_id=comment_id,
 						comment=comment,
 						parent_id=parent_id,
 						return_data=True,
 					)
-			if type_item in ["POST_COMMENT", "POST_REPLY", "POST_REPLY_REPLY"]:
-				if type_item == "POST_COMMENT":
-					comment_id = cast(int, item.get("reference_id", message["comment_id"]))
+			elif reply_type.startswith("POST"):
+				business_id = message["business_id"]
+				if reply_type == "POST_COMMENT":
+					comment_id = cast(int, reply.get("reference_id", message["comment_id"]))
 					self.forum_motion.reply_comment(
 						reply_id=comment_id,
 						parent_id=0,
 						content=comment,
 					)
 				else:
-					parent_id = cast(int, item.get("reference_id", message["replied_id"]))
-					id_list = Obtain().get_comments_detail(
-						id=message["business_id"], source="post", method="comment_id"
-					)
-					id_list = cast(list[str], id_list)
+					parent_id = cast(int, reply.get("reference_id", message["replied_id"]))
+					comment_ids = Obtain().get_comments_detail(id=business_id, source="post", method="comment_id")
+					comment_ids=cast(list[str], comment_ids)
 					comment_id = cast(
-						int, self.tool_routine.find_prefix_suffix(text=message["reply_id"], lst=id_list)[0]
+						int, self.tool_routine.find_prefix_suffix(text=message["reply_id"], lst=comment_ids)[0]
 					)
 					self.forum_motion.reply_comment(
 						reply_id=comment_id,
