@@ -351,6 +351,7 @@ class Motion(ClassUnion):
 					id_list = Obtain().get_comments_detail(
 						id=message["business_id"], source="work", method="comment_id"
 					)
+					id_list = cast(list[str], id_list)
 					comment_id = cast(
 						int, self.tool_routine.find_prefix_suffix(text=f".{message['reply_id']}", lst=id_list)[0]
 					)
@@ -371,8 +372,15 @@ class Motion(ClassUnion):
 					)
 				else:
 					parent_id = cast(int, item.get("reference_id", message["replied_id"]))
+					id_list = Obtain().get_comments_detail(
+						id=message["business_id"], source="post", method="comment_id"
+					)
+					id_list = cast(list[str], id_list)
+					comment_id = cast(
+						int, self.tool_routine.find_prefix_suffix(text=message["reply_id"], lst=id_list)[0]
+					)
 					self.forum_motion.reply_comment(
-						reply_id=message["reply_id"],
+						reply_id=comment_id,
 						parent_id=parent_id,
 						content=comment,
 					)
