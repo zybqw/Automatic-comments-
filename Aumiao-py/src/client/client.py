@@ -111,56 +111,77 @@ class Obtain(ClassUnion):
 			offset += limit
 		return _list
 
-	# 获取评论区特定信息
-	def get_comments_detail(
+	# 获取评论区信息
+	def get_comments_detail(  # noqa: PLR0912
 		self,
-		work_id: int,
+		id: int,
+		source: Literal["work", "post"],
 		method: Literal["user_id", "comments", "comment_id"] = "user_id",
-	):
-		comments = self.work_obtain.get_work_comments(work_id=work_id, limit=200)
+	) -> list[int | dict | str]:
+		if source == "work":
+			comments = self.work_obtain.get_work_comments(work_id=id, limit=200)
+		elif source == "post":
+			comments = self.forum_obtain.get_post_replies_posts(id=id, limit=200)
+		else:
+			raise ValueError("不支持的来源类型")
+
 		if method == "user_id":
-			result = []
-			# 添加评论用户的 ID
-			result.extend(comment_item["user"]["id"] for comment_item in comments)
-			# 添加回复用户的 ID
-			result.extend(
-				reply_item["reply_user"]["id"]
-				for comment_item in comments
-				if "replies" in comment_item and "items" in comment_item["replies"]
-				for reply_item in comment_item["replies"]["items"]
-			)
+			user_ids = []
+			user_ids.extend(comment["user"]["id"] for comment in comments)
+			if source == "post":
+				for comment in comments:
+					replies = self.forum_obtain.get_reply_post_comments(post_id=comment["id"], limit=200)
+					user_ids.extend(reply["user"]["id"] for reply in replies)
+			else:
+				user_ids.extend(
+					reply["reply_user"]["id"]
+					for comment in comments
+					if "replies" in comment and "items" in comment["replies"]
+					for reply in comment["replies"]["items"]
+				)
+			result = user_ids
+
 		elif method == "comment_id":
-			result = []
-			# 添加评论ID
-			result.extend(item["id"] for item in comments)
-			# 添加回复ID
-			result.extend(
-				f"{item['id']}.{reply['id']}"
-				for item in comments
-				if "replies" in item and "items" in item["replies"]
-				for reply in item["replies"]["items"]
-			)
+			comment_ids = [comment["id"] for comment in comments]
+			if source == "post":
+				for comment in comments:
+					replies = self.forum_obtain.get_reply_post_comments(post_id=comment["id"], limit=200)
+					comment_ids.extend(f"{comment['id']}.{reply['id']}" for reply in replies)
+			else:
+				comment_ids.extend(
+					f"{comment['id']}.{reply['id']}"
+					for comment in comments
+					if "replies" in comment and "items" in comment["replies"]
+					for reply in comment["replies"]["items"]
+				)
+			result = comment_ids
 
 		elif method == "comments":
-			result = []
-			for item in comments:
+			detailed_comments = []
+			for comment in comments:
 				comment_detail = {
-					"id": item["id"],
-					"content": item["content"],
-					"is_top": item["is_top"],
+					"id": comment["id"],
+					"content": comment["content"],
+					"is_top": comment.get("is_top", False),
 					"replies": [],
 				}
-				if "replies" in item and "items" in item["replies"]:
-					for reply in item["replies"]["items"]:
-						reply_detail = {
-							"id": reply["id"],
-							"content": reply["content"],
-						}
-						comment_detail["replies"].append(reply_detail)
-				result.append(comment_detail)
+				if source == "post":
+					replies = self.forum_obtain.get_reply_post_comments(post_id=comment["id"], limit=200)
+				else:
+					replies = comment.get("replies", {}).get("items", [])
+				for reply in replies:
+					reply_detail = {
+						"id": reply["id"],
+						"content": reply["content"],
+					}
+					comment_detail["replies"].append(reply_detail)
+				detailed_comments.append(comment_detail)
+			result = detailed_comments
+
 		else:
 			raise ValueError("不支持的请求方法")
-		return result
+
+		return [item for index, item in enumerate(result) if item not in result[:index]]
 
 
 @decorator.singleton
@@ -178,7 +199,7 @@ class Motion(ClassUnion):
 			work_id = works_item["id"]
 			work_id = cast(int, work_id)
 			works_item["id"] = cast(int, works_item["id"])
-			comments: list = Obtain().get_comments_detail(
+			comments: list = Obtain().get_work_comments_detail(
 				work_id=works_item["id"],
 				method="comments",
 			)
@@ -314,7 +335,7 @@ class Motion(ClassUnion):
 			type_item = item["type"]
 			content = loads(cast(str, item["content"]))
 			message = content["message"]
-			comment_text = message["comment"] if type_item == "WORK_COMMENT" or "POST_COMMENT" else message["reply"]
+			comment_text = message["comment"] if type_item in ["WORK_COMMENT", "POST_COMMENT"] else message["reply"]
 			response_comment = get_response(comment=comment_text, answers=formatted_answers)
 			comment = response_comment if response_comment else choice(formatted_replies)
 
@@ -330,7 +351,7 @@ class Motion(ClassUnion):
 					)
 				else:
 					parent_id = cast(int, item.get("reference_id", message["replied_id"]))
-					id_list = Obtain().get_comments_detail(work_id=message["business_id"], method="comment_id")
+					id_list = Obtain().get_work_comments_detail(work_id=message["business_id"], method="comment_id")
 					comment_id = cast(
 						int, self.tool_routine.find_prefix_suffix(text=f".{message['reply_id']}", lst=id_list)[0]
 					)
@@ -352,7 +373,7 @@ class Motion(ClassUnion):
 				else:
 					parent_id = cast(int, item.get("reference_id", message["replied_id"]))
 					self.forum_motion.reply_comment(
-						reply_id=message["comment_id"],
+						reply_id=message["reply_id"],
 						parent_id=parent_id,
 						content=comment,
 					)

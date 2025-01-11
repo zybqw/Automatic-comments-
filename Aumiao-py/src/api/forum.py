@@ -24,8 +24,9 @@ class Obtain:
 		response = self.acquire.send_request(url=f"/web/forums/posts/{id}/details", method="get")
 		return response.json()
 
+	# 回帖会单独分配一个独立于被回复帖子的id
 	# 获取帖子回帖
-	def get_post_replies_posts(self, id: int, sort: str = "-created_at"):
+	def get_post_replies_posts(self, id: int, sort: str = "-created_at", limit: int = 15):
 		params = {"page": 1, "limit": 10, "sort": sort}
 		replies = self.acquire.fetch_data(
 			url=f"/web/forums/posts/{id}/replies",
@@ -34,6 +35,7 @@ class Obtain:
 			data_key="items",
 			method="page",
 			args={"amount": "limit", "remove": "page"},
+			limit=limit,
 		)
 		return replies
 
