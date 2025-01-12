@@ -42,7 +42,7 @@ class CodeMaoFile:
 		content: str | dict | list[str],
 		method: str = "w",
 	) -> None:
-		self.check_file(path=path)
+		# self.check_file(path=path)
 		with open(file=path, mode=method, encoding="utf-8") as file:
 			if isinstance(content, str):
 				file.write(content + "\n")

@@ -84,8 +84,12 @@ class Index(ClassUnion):
 	def index(self):
 		print(self.setting.PROGRAM["SLOGAN"])
 		print(f"版本号: {self.setting.PROGRAM['VERSION']}")
+		print("*" * 22 + " 公告 " + "*" * 22)
 		print("编程猫社区行为守则 https://shequ.codemao.cn/community/1619098")
 		print("2025编程猫拜年祭活动 https://shequ.codemao.cn/community/1619855")
+		print("*" * 22 + " 数据 " + "*" * 22)
+		Tool().message_report(user_id=self.data.ACCOUNT_DATA["id"])
+		print("*" * 50)
 
 
 @decorator.singleton
