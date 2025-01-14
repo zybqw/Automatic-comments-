@@ -10,7 +10,7 @@ from src.base import acquire, data, decorator, file, tool
 class Union:
 	def __init__(self) -> None:
 		self.acquire = acquire.CodeMaoClient()
-		self.cache = cast(dict, data.CodeMaoCache().cache)
+		self.cache = data.CodeMaoCache().cache
 		self.community_obtain = community.Obtain()
 		self.data = data.CodeMaoData().data
 		self.file = file.CodeMaoFile()
@@ -49,6 +49,7 @@ class Tool(ClassUnion):
 			"view": response["view_times"],
 			"timestamp": timestamp,
 		}
+		self.cache = cast(dict, self.cache)
 		before_data = self.cache
 		if before_data != {}:
 			self.tool_routine.display_data_changes(
@@ -62,7 +63,7 @@ class Tool(ClassUnion):
 				},
 				date="timestamp",
 			)
-		before_data.update(user_data)
+		self.cache.update(user_data)  # 使用 `update` 方法，确保同步
 
 	# 猜测手机号码(暴力枚举)
 	def guess_phonenum(self, phonenum: str) -> int | None:
@@ -163,6 +164,7 @@ class Obtain(ClassUnion):
 			detailed_comments = []
 			for comment in comments:
 				comment_detail = {
+					"user_id": comment["user"]["id"],
 					"id": comment["id"],
 					"content": comment["content"],
 					"is_top": comment.get("is_top", False),
@@ -191,6 +193,11 @@ class Obtain(ClassUnion):
 class Motion(ClassUnion):
 	def __init__(self) -> None:
 		super().__init__()
+
+	def clear_black_room(self, source: Literal["work", "post"]):
+		if source == "work":
+			items_list = self.user_obtain.get_user_works_web(self.data["ACCOUNT_DATA"]["id"])
+			get_comments = lambda item_id: Obtain().get_comments_detail(id=item_id, source="work", method="comments")
 
 	def clear_ads(self, source: Literal["work", "post"]) -> bool:
 		if source == "work":

@@ -24,7 +24,10 @@ class SyncDict(dict[str, Any]):
 		self.key = key  # 当前 SyncDict 在父字典中的键
 
 	def _sync_to_file(self):
-		if self.key is not None:
+		if self.key is None:
+			self.parent_ref = self
+		else:
+			self.parent_ref[self.key] = self
 			self.parent_ref[self.key] = self
 		with open(self.file_path, "w", encoding="utf-8") as f:
 			json.dump(self.parent_ref, f, ensure_ascii=False, indent=4)
