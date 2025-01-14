@@ -325,17 +325,25 @@ class Motion(ClassUnion):
 	# 自动回复
 	def reply_work(self) -> bool:
 		new_replies = Obtain().get_new_replies()
-		formatted_answers = [
-			{question: answer.format(**self.data["INFO"]) for question, answer in answer_dict.items()}
+		formatted_answers: list[dict[str, list[str] | str]] = [
+			{
+				question: (
+					[resp.format(**self.data["INFO"]) for resp in response]  # 如果是列表，格式化列表中的每个元素
+					if isinstance(response, list)
+					else response.format(**self.data["INFO"])  # 如果是字符串，直接格式化字符串
+				)
+				for question, response in answer_dict.items()
+			}
 			for answer_dict in self.data["USER_DATA"]["answers"]
 		]
 		formatted_replies = [reply.format(**self.data["INFO"]) for reply in self.data["USER_DATA"]["replies"]]
 
-		def get_response(comment: str, answers: list[dict[str, str]]) -> str | None:
+		# 获取匹配的响应
+		def get_response(comment: str, answers: list[dict[str, list[str] | str]]) -> str | None:
 			for answer_dict in answers:
 				for keyword, response in answer_dict.items():
-					if keyword in comment:
-						return response
+					if keyword in comment:  # 如果关键词是字符串
+						return response if isinstance(response, str) else choice(response)  # 同样处理响应类型
 			return None
 
 		filtered_replies = self.tool_process.filter_items_by_values(

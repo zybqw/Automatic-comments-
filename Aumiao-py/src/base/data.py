@@ -71,7 +71,7 @@ class BlackRoomData(TypedDict):
 
 class UserData(TypedDict):
 	ads: list[str]
-	answers: list[dict[str, str]]
+	answers: list[dict[str, str | list[str]]]
 	black_room: BlackRoomData
 	comments: list[str]
 	emojis: list[str]
