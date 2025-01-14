@@ -10,14 +10,13 @@ from src.base import acquire, data, decorator, file, tool
 class Union:
 	def __init__(self) -> None:
 		self.acquire = acquire.CodeMaoClient()
-		self.cache = data.CodeMaoCache()
+		self.cache = cast(dict, data.CodeMaoCache().cache)
 		self.community_obtain = community.Obtain()
-		self.data = data.CodeMaoData()
+		self.data = data.CodeMaoData().data
 		self.file = file.CodeMaoFile()
 		self.forum_motion = forum.Motion()
 		self.forum_obtain = forum.Obtain()
-		self.setting = data.CodeMaoSetting()
-		self.setting = data.CodeMaoSetting()
+		self.setting = data.CodeMaoSetting().setting
 		self.shop_motion = shop.Motion()
 		self.shop_obtain = shop.Obtain()
 		self.tool_process = tool.CodeMaoProcess()
@@ -50,7 +49,7 @@ class Tool(ClassUnion):
 			"view": response["view_times"],
 			"timestamp": timestamp,
 		}
-		before_data = self.cache.CACHE
+		before_data = self.cache
 		if before_data != {}:
 			self.tool_routine.display_data_changes(
 				before_data=before_data,
@@ -82,13 +81,13 @@ class Index(ClassUnion):
 
 	# 打印slogan
 	def index(self):
-		print(self.setting.PROGRAM["SLOGAN"])
-		print(f"版本号: {self.setting.PROGRAM['VERSION']}")
+		print(self.setting["PROGRAM"]["SLOGAN"])
+		print(f"版本号: {self.setting['PROGRAM']['VERSION']}")
 		print("*" * 22 + " 公告 " + "*" * 22)
 		print("编程猫社区行为守则 https://shequ.codemao.cn/community/1619098")
 		print("2025编程猫拜年祭活动 https://shequ.codemao.cn/community/1619855")
 		print("*" * 22 + " 数据 " + "*" * 22)
-		Tool().message_report(user_id=self.data.ACCOUNT_DATA["id"])
+		Tool().message_report(user_id=self.data["ACCOUNT_DATA"]["id"])
 		print("*" * 50)
 
 
@@ -195,7 +194,7 @@ class Motion(ClassUnion):
 
 	def clear_ads(self, source: Literal["work", "post"]) -> bool:
 		if source == "work":
-			items_list = self.user_obtain.get_user_works_web(self.data.ACCOUNT_DATA["id"])
+			items_list = self.user_obtain.get_user_works_web(self.data["ACCOUNT_DATA"]["id"])
 			get_comments = lambda item_id: Obtain().get_comments_detail(id=item_id, source="work", method="comments")
 			delete_comment = lambda item_id, comment_id: self.work_motion.del_comment_work(
 				work_id=item_id, comment_id=comment_id
@@ -209,7 +208,7 @@ class Motion(ClassUnion):
 		else:
 			raise ValueError("不支持的来源类型")
 
-		ads: list[str] = self.data.USER_DATA["ads"]
+		ads: list[str] = self.data["USER_DATA"]["ads"]
 		ad_list = []
 
 		for item in items_list:
@@ -265,7 +264,7 @@ class Motion(ClassUnion):
 			return response.status_code
 
 		item = 0
-		params = {
+		params: dict[str, int | str] = {
 			"limit": 200,
 			"offset": item,
 		}
@@ -276,7 +275,7 @@ class Motion(ClassUnion):
 				if len(set(counts[i]["count"] for i in range(3)) | {0}) == 1:
 					return True
 
-				query_types = self.setting.PARAMETER["CLIENT"]["all_read_type"]
+				query_types = self.setting["PARAMETER"]["CLIENT"]["all_read_type"]
 				responses = {}
 				for query_type in query_types:
 					params["query_type"] = query_type
@@ -327,10 +326,10 @@ class Motion(ClassUnion):
 	def reply_work(self) -> bool:
 		new_replies = Obtain().get_new_replies()
 		formatted_answers = [
-			{question: answer.format(**self.data.INFO) for question, answer in answer_dict.items()}
-			for answer_dict in self.data.USER_DATA["answers"]
+			{question: answer.format(**self.data["INFO"]) for question, answer in answer_dict.items()}
+			for answer_dict in self.data["USER_DATA"]["answers"]
 		]
-		formatted_replies = [reply.format(**self.data.INFO) for reply in self.data.USER_DATA["replies"]]
+		formatted_replies = [reply.format(**self.data["INFO"]) for reply in self.data["USER_DATA"]["replies"]]
 
 		def get_response(comment: str, answers: list[dict[str, str]]) -> str | None:
 			for answer_dict in answers:

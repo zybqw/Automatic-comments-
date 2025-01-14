@@ -24,7 +24,7 @@ class CodeMaoClient:
 		self.data = Data.CodeMaoSetting()
 		self.tool_process = Tool.CodeMaoProcess()
 		self.file = File.CodeMaoFile()
-		self.HEADERS: dict = self.data.PROGRAM["HEADERS"]
+		self.HEADERS: dict = self.data.setting["PROGRAM"]["HEADERS"]
 		self.BASE_URL: str = "https://api.codemao.cn"
 		global session  # noqa: PLW0602
 

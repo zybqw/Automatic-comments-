@@ -5,30 +5,27 @@ from typing import Any, TypedDict, cast
 from . import file as File
 from .decorator import singleton
 
+# 定义常量
 DATA_FILE_PATH: str = path.join(getcwd(), "data", "data.json")
 CACHE_FILE_PATH: str = path.join(getcwd(), "data", "cache.json")
 SETTING_FILE_PATH: str = path.join(getcwd(), "data", "setting.json")
 
 
-# 该字典不可单例
+# 自定义字典类，用于自动同步到文件
 class SyncDict(dict[str, Any]):
 	"""
-	自定义字典类,用于在修改内容时自动同步到文件中.
+	自定义字典类，用于在修改内容时自动同步到文件中。
 	"""
 
-	def __init__(self, file_path: str, parent_ref: Any, key: str | None, *args, **kwargs):
+	def __init__(self, file_path: str, parent_ref: dict[str, Any], key: str | None, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.file_path = file_path
 		self.parent_ref = parent_ref  # 父级字典的引用
 		self.key = key  # 当前 SyncDict 在父字典中的键
 
 	def _sync_to_file(self):
-		# 更新父级字典的当前键
-		if self.key is None:
-			self.parent_ref = self
-		else:
+		if self.key is not None:
 			self.parent_ref[self.key] = self
-		# 将完整父级字典保存到文件
 		with open(self.file_path, "w", encoding="utf-8") as f:
 			json.dump(self.parent_ref, f, ensure_ascii=False, indent=4)
 
@@ -49,6 +46,7 @@ class SyncDict(dict[str, Any]):
 		self._sync_to_file()
 
 
+# 定义 TypedDict 数据结构
 class AccountData(TypedDict):
 	author_level: str
 	create_time: str
@@ -122,14 +120,9 @@ class Plugin(TypedDict):
 	prompt: str
 
 
-class ProgramHeaders(TypedDict):
-	Content_Type: str
-	User_Agent: str
-
-
 class Program(TypedDict):
 	AUTHOR: str
-	HEADERS: ProgramHeaders
+	HEADERS: dict
 	MEMBER: str
 	SLOGAN: str
 	TEAM: str
@@ -154,16 +147,15 @@ class _CodeMaoCache(TypedDict):
 	view: int
 
 
+# 单例类定义
 @singleton
 class CodeMaoData:
 	def __init__(self) -> None:
 		_data = File.CodeMaoFile().file_load(path=DATA_FILE_PATH, type="json")
 		_data = cast(dict[str, Any], _data)
-		# 父级字典引用
-		self.data = _data
-		# 用 SyncDict 包装子字典
-		self.data = SyncDict(file_path=DATA_FILE_PATH, parent_ref=self.data, key=None, **self.data)
-		self.data = cast(_CodeMaoData, self.data)
+		self.data: _CodeMaoData = cast(
+			_CodeMaoData, SyncDict(file_path=DATA_FILE_PATH, parent_ref=_data, key=None, **_data)
+		)
 
 
 @singleton
@@ -171,17 +163,13 @@ class CodeMaoCache:
 	def __init__(self) -> None:
 		_cache = File.CodeMaoFile().file_load(path=CACHE_FILE_PATH, type="json")
 		_cache = cast(dict[str, Any], _cache)
-		# 父级字典引用
-		self.cache = _cache
-		# 用 SyncDict 包装子字典
-		self.cache = SyncDict(file_path=CACHE_FILE_PATH, parent_ref=self.cache, key=None, **self.cache)
-		self.cache = cast(_CodeMaoCache, self.cache)
+		self.cache: _CodeMaoCache = cast(
+			_CodeMaoCache, SyncDict(file_path=CACHE_FILE_PATH, parent_ref=_cache, key=None, **_cache)
+		)
 
 
 @singleton
 class CodeMaoSetting:
 	def __init__(self) -> None:
 		_setting = File.CodeMaoFile().file_load(path=SETTING_FILE_PATH, type="json")
-		_setting = cast(dict[str, Any], _setting)
-		self.setting = _setting
-		self.setting = cast(_CodeMaoSetting, self.setting)
+		self.setting: _CodeMaoSetting = cast(_CodeMaoSetting, _setting)

@@ -13,7 +13,7 @@ class Login:
 	def __init__(self) -> None:
 		self.acquire = Acquire.CodeMaoClient()
 		self.tool_process = Tool.CodeMaoProcess()
-		self.setting = Data.CodeMaoSetting()
+		self.setting = Data.CodeMaoSetting().setting
 
 	# 密码登录函数
 	def login_password(
@@ -52,7 +52,7 @@ class Login:
 			print(f"表达式输入不合法 {err}")
 			return False
 		response = self.acquire.send_request(
-			url=self.setting.PARAMETER["CLIENT"]["cookie_check_url"],
+			url=self.setting["PARAMETER"]["CLIENT"]["cookie_check_url"],
 			method="post",
 			data=json.dumps({}),
 			headers={**self.acquire.HEADERS, "cookie": cookies},
