@@ -199,116 +199,82 @@ class Motion(ClassUnion):
 	def __init__(self) -> None:
 		super().__init__()
 
-	def clear_ads(self, source: Literal["work", "post"]) -> bool:  # noqa: PLR0912, PLR0915
-		# 由于编程猫社区命名极不规范,在本函数变量中，reply指work中comment的回复或者post中reply(回帖)中的回复
-		# comment指work中的comment或者post中的reply
-		# 但是delete_comment_post_reply函数reply指回帖,comment指回帖的回复
-		if source == "work":
-			items_list = self.user_obtain.get_user_works_web(self.data["ACCOUNT_DATA"]["id"])
-			get_comments = lambda item_id: Obtain().get_comments_detail(id=item_id, source="work", method="comments")
-		elif source == "post":
-			items_list = self.forum_obtain.get_post_mine_all(method="created")
-			get_comments = lambda item_id: Obtain().get_comments_detail(id=item_id, source="post", method="comments")
-		else:
+	# 由于编程猫社区命名极不规范,在本函数变量中，reply指work中comment的回复或者post中reply(回帖)中的回复
+	# comment指work中的comment或者post中的reply
+	# 但是delete_comment_post_reply函数reply指回帖,comment指回帖的回复
+	# 将列表切片翻转是为了先删评论中的回复再删评论，防止在存在评论和回复都是待删项时，删除回复报错
+	def clear_ads(self, source: Literal["work", "post"]) -> bool:
+		def get_items_and_comments():
+			if source == "work":
+				return (
+					self.user_obtain.get_user_works_web(self.data["ACCOUNT_DATA"]["id"]),
+					lambda item_id: Obtain().get_comments_detail(id=item_id, source="work", method="comments"),
+				)
+			elif source == "post":
+				return (
+					self.forum_obtain.get_post_mine_all(method="created"),
+					lambda item_id: Obtain().get_comments_detail(id=item_id, source="post", method="comments"),
+				)
 			raise ValueError("不支持的来源类型")
-		delete_reply_post = lambda item_id, comment_id: self.forum_motion.delete_comment_post_reply(
-			id=comment_id, type="comments"
-		)
-		delete_comment_post = lambda item_id, comment_id: self.forum_motion.delete_comment_post_reply(
-			id=comment_id, type="replies"
-		)
-		delete_comment_work = lambda item_id, comment_id: self.work_motion.del_comment_work(
-			work_id=item_id, comment_id=comment_id
-		)
 
-		ads: list[str] = self.data["USER_DATA"]["ads"]
-		ad_list = []
+		def delete_comment(item_id, comment_id, is_reply=False):
+			if source == "post":
+				return self.forum_motion.delete_comment_post_reply(
+					id=comment_id, type="replies" if is_reply else "comments"
+				)
+			return self.work_motion.del_comment_work(work_id=item_id, comment_id=comment_id)
+
+		items_list, get_comments = get_items_and_comments()
+		ads = self.data["USER_DATA"]["ads"]
 		bad_users = self.data["USER_DATA"]["black_room"]["user"]
-		bad_list = []
+		ad_list, bad_list = [], []
 
 		for item in items_list:
 			item_id = int(item["id"])
-			comments = get_comments(item_id)
-			comments = cast(list[dict], comments)
-			for comment in comments:
-				comment_id = comment["id"]
-				content = comment["content"].lower()
-				user_id = comment["user_id"]
-				if any(ad in content for ad in ads) and not comment.get("is_top", False):
-					print(f"在{source} {item['title' if source == 'post' else 'work_name']} 中发现广告: {content}")
-					ad_list.append(f"{item_id}.{comment_id}")
-				if str(user_id) in bad_users and not comment.get("is_top", False):
-					print(
-						f"在{source} {item['title' if source == 'post' else 'work_name']} 中发现黑名单: {comment['nickname']}发送的评论: {content}"  # noqa: E501
-					)
-					bad_list.append(f"{item_id}.{comment_id}:comment")
+			for comment in get_comments(item_id):
+				comment = cast(dict, comment)
+				comment_id, content, user_id = comment["id"], comment["content"].lower(), comment["user_id"]
+				title = item["title" if source == "post" else "work_name"]
+
+				if not comment.get("is_top", False):
+					if any(ad in content for ad in ads):
+						print(f"在{source} {title} 中发现广告: {content}")
+						ad_list.append(f"{item_id}.{comment_id}:comment")
+					if str(user_id) in bad_users:
+						print(f"在{source} {title} 中发现黑名单: {comment['nickname']}发送的评论: {content}")
+						bad_list.append(f"{item_id}.{comment_id}:comment")
+
 				for reply in comment["replies"]:
-					reply_id = reply["id"]
-					reply_content = reply["content"].lower()
-					user_id = reply["user_id"]
+					reply_id, reply_content, reply_user_id = reply["id"], reply["content"].lower(), reply["user_id"]
 					if any(ad in reply_content for ad in ads):
+						print(f"在{source} {title} 中 {content} 评论中发现广告: {reply_content}")
+						ad_list.append(f"{item_id}.{reply_id}:reply")
+					if str(reply_user_id) in bad_users:
 						print(
-							f"在{source} {item['title' if source == 'post' else 'work_name']} 中 {content} 评论中发现广告: {reply_content}"  # noqa: E501
-						)
-						ad_list.append(f"{item_id}.{reply_id}")
-					if str(user_id) in bad_users and not comment.get("is_top", False):
-						print(
-							f"在{source} {item['title' if source == 'post' else 'work_name']} 中 {content} 评论中发现黑名单: {comment['nickname']}发送的评论: {reply_content}"  # noqa: E501
+							f"在{source} {title} 中 {content} 评论中发现黑名单: {reply['nickname']}发送的评论: {reply_content}"  # noqa: E501
 						)
 						bad_list.append(f"{item_id}.{reply_id}:reply")
-		print("-" * 50)
-		if ad_list:
-			ad_list = ad_list[::-1]
-			# 将列表切片翻转是为了先删评论中的回复再删评论，防止在存在评论和回复都是待删项时，删除回复报错
-			print("发现以下广告评论:")
-			for ad in ad_list:
-				print(ad)
 
-			user_input = input("是否删除所有广告评论? (y/n): ").strip().lower()
-
-			if user_input == "y":
-				for ad in ad_list:
-					item_id, comment_id = map(int, ad.split(":")[0].split("."))
-					if ad.split(":")[1] == "comment" and source == "post":
-						response = delete_comment_post(item_id=item_id, comment_id=comment_id)
-					elif ad.split(":")[1] == "reply" and source == "post":
-						response = delete_reply_post(item_id=item_id, comment_id=comment_id)
-					else:
-						response = delete_comment_work(item_id, comment_id)
-					if not response:
-						print(f"删除广告评论 {ad} 失败")
-						return False
-					print(f"广告评论 {ad} 已删除")
+		def process_list(list_name, list_items):
+			if list_items:
+				print(f"发现以下{list_name}:")
+				for item in list_items[::-1]:
+					print(item)
+				if input(f"是否删除所有{list_name}? (y/n): ").strip().lower() == "y":
+					for item in list_items[::-1]:
+						item_id, comment_id = map(int, item.split(":")[0].split("."))
+						is_reply = item.split(":")[1] != "reply"
+						if not delete_comment(item_id, comment_id, is_reply):
+							print(f"删除{list_name} {item} 失败")
+							return False
+						print(f"{list_name} {item} 已删除")
+				else:
+					print(f"未删除任何{list_name}")
 			else:
-				print("未删除任何广告评论")
-		else:
-			print("未发现广告评论")
-		if bad_list:
-			bad_list = bad_list[::-1]
-			print("发现以下黑名单评论:")
-			for comment in bad_list:
-				print(comment)
+				print(f"未发现{list_name}")
+			return True
 
-			user_input = input("是否删除所有黑名单评论? (y/n): ").strip().lower()
-			if user_input == "y":
-				for comment in bad_list:
-					item_id, comment_id = map(int, comment.split(":")[0].split("."))
-					if comment.split(":")[1] == "comment" and source == "post":
-						response = delete_comment_post(item_id=item_id, comment_id=comment_id)
-					elif comment.split(":")[1] == "reply" and source == "post":
-						response = delete_reply_post(item_id=item_id, comment_id=comment_id)
-					else:
-						response = delete_comment_work(item_id, comment_id)
-					if not response:
-						print(f"删除黑名单评论 {comment} 失败")
-						return False
-					print(f"黑名单评论 {comment} 已删除")
-			else:
-				print("未删除任何黑名单评论")
-		else:
-			print("未发现黑名单评论")
-
-		return True
+		return process_list("广告评论", ad_list) and process_list("黑名单评论", bad_list)
 
 	# 清除邮箱红点
 	def clear_red_point(self, method: Literal["nemo", "web"] = "web") -> bool:
