@@ -220,7 +220,7 @@ class Motion(ClassUnion):
 		def delete_comment(item_id, comment_id, is_reply=False):
 			if source == "post":
 				return self.forum_motion.delete_comment_post_reply(
-					id=comment_id, type="replies" if is_reply else "comments"
+					id=comment_id, type="comments" if is_reply else "replies"
 				)
 			return self.work_motion.del_comment_work(work_id=item_id, comment_id=comment_id)
 
@@ -240,7 +240,7 @@ class Motion(ClassUnion):
 					if any(ad in content for ad in ads):
 						print(f"在{source} {title} 中发现广告: {content}")
 						ad_list.append(f"{item_id}.{comment_id}:comment")
-					if str(user_id) in bad_users:
+					elif str(user_id) in bad_users:  # 使用 elif 避免重复添加
 						print(f"在{source} {title} 中发现黑名单: {comment['nickname']}发送的评论: {content}")
 						bad_list.append(f"{item_id}.{comment_id}:comment")
 
@@ -249,11 +249,14 @@ class Motion(ClassUnion):
 					if any(ad in reply_content for ad in ads):
 						print(f"在{source} {title} 中 {content} 评论中发现广告: {reply_content}")
 						ad_list.append(f"{item_id}.{reply_id}:reply")
-					if str(reply_user_id) in bad_users:
+					elif str(reply_user_id) in bad_users:  # 使用 elif 避免重复添加
 						print(
 							f"在{source} {title} 中 {content} 评论中发现黑名单: {reply['nickname']}发送的评论: {reply_content}"  # noqa: E501
 						)
 						bad_list.append(f"{item_id}.{reply_id}:reply")
+
+		# 移除 bad_list 中与 ad_list 重复的项
+		bad_list = [item for item in bad_list if item not in ad_list]
 
 		def process_list(list_name, list_items):
 			if list_items:
@@ -263,7 +266,7 @@ class Motion(ClassUnion):
 				if input(f"是否删除所有{list_name}? (y/n): ").strip().lower() == "y":
 					for item in list_items[::-1]:
 						item_id, comment_id = map(int, item.split(":")[0].split("."))
-						is_reply = item.split(":")[1] != "reply"
+						is_reply = item.split(":")[1] == "reply"  # 修正了这里的逻辑
 						if not delete_comment(item_id, comment_id, is_reply):
 							print(f"删除{list_name} {item} 失败")
 							return False
