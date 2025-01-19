@@ -29,7 +29,8 @@ class Dashscope:
 		],
 		more={
 			"stream": False,
-			"extra_body": {"enable_search": True},
+			# "extra_body": {"enable_search": True},
+			# 开源模型不支持互联网搜索
 			# 更多参数详见文档
 		},
 	):

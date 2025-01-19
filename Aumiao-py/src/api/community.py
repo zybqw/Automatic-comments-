@@ -80,8 +80,10 @@ class Login:
 	# 	return auth_cookie
 
 	# 退出登录
-	def logout(self):
-		response = self.acquire.send_request(url="/tiger/v3/web/accounts/logout", method="post", data=json.dumps({}))
+	def logout(self, method: Literal["web", "app"]):
+		response = self.acquire.send_request(
+			url=f"/tiger/v3/{method}/accounts/logout", method="post", data=json.dumps({})
+		)
 		return response.status_code == 204
 
 	# 登录信息

@@ -16,7 +16,7 @@
 	},
 	"PLUGIN": {
 		"DASHSCOPE": {
-			"model": "qwen2-0.5b-instruct",
+			"model": "qwen2.5-3b-instruct",
 			"more": {
 				"extra_body": {
 					"enable_search": true

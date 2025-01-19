@@ -182,12 +182,21 @@ class Motion:
 		)
 		return response.status_code == 200
 
-	# 对某个作品进行点赞的函数
+	# 点赞的函数
 	def like_work(self, work_id: int, method: select = "post") -> bool:
 		# 对某个作品进行点赞
 		response = self.acquire.send_request(
 			url=f"/nemo/v2/works/{work_id}/like",
 			method=method,
+			data=json.dumps({}),
+		)
+		return response.status_code == 200
+
+	# 分享的函数
+	def share_work(self, work_id: int) -> bool:
+		response = self.acquire.send_request(
+			url=f"/nemo/v2/works/{work_id}/share",
+			method="post",
 			data=json.dumps({}),
 		)
 		return response.status_code == 200
@@ -299,9 +308,10 @@ class Motion:
 		)
 		return response.status_code == 200
 
-	# 删除一个已发布的作品
-	def delete_temp_work_kn(self, work_id: int):
-		params = {"force": 1}
+	# 删除一个kn作品
+	# force疑似1为网页端删除，2为手机端删除
+	def delete_temp_work_kn(self, work_id: int, force: Literal[1, 2]):
+		params = {"force": force}
 		response = self.acquire.send_request(
 			url=f"https://api-creation.codemao.cn/neko/works/{work_id}",
 			method="delete",
@@ -351,6 +361,18 @@ class Motion:
 			method="delete",
 		)
 
+		return response.status_code == 200
+
+	# 重命名作品
+	# TODO work_type未知，应该是作品标签？work_type可有可无，抓包抓出来有个值为8
+	def rename_work(
+		self, work_id: int, name: str, work_type: int | None = None, is_check_name: Literal[True, False] = False
+	) -> bool:
+		response = self.acquire.send_request(
+			url=f"/tiger/work/works/{work_id}/rename",
+			method="patch",
+			params={"is_check_name": is_check_name, "name": name, "work_type": work_type},
+		)
 		return response.status_code == 200
 
 
