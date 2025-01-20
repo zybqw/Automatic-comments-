@@ -327,12 +327,12 @@ class Motion:
 		self.acquire = Acquire.CodeMaoClient()
 
 	# 设置正在做的事
-	def set_doing(self, doing: str):
+	def set_data_doing(self, doing: str):
 		response = self.acquire.send_request(url="/nemo/v2/user/basic", method="put", data=json.dumps({"doing": doing}))
 		return response.status_code == 200
 
 	# 设置登录用户名(实验性功能)
-	def set_username(self, username):
+	def set_data_username(self, username):
 		response = self.acquire.send_request(
 			url="/tiger/v3/web/accounts/username",
 			method="patch",
@@ -408,3 +408,32 @@ class Motion:
 			method="put",
 		)
 		return response.status_code == 200
+
+	# 设置info
+	# birthday值为timestamp
+	# sex中0为女,1为男
+	# https://api.codemao.cn/tiger/v3/web/accounts/info
+
+	def set_data_info(
+		self,
+		avatar_url: str,
+		nickname: str,
+		birthday: int,
+		description: str,
+		fullname: str,
+		qq: str,
+		sex: Literal[0, 1],
+	):
+		data = {
+			"avatar_url": avatar_url,
+			"nickname": nickname,
+			"birthday": birthday,
+			"description": description,
+			"fullname": fullname,
+			"qq": qq,
+			"sex": sex,
+		}
+		response = self.acquire.send_request(
+			url="https://api.codemao.cn/tiger/v3/web/accounts/info", method="patch", data=json.dumps(data)
+		)
+		return response.status_code == 204

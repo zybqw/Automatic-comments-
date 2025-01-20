@@ -153,3 +153,22 @@ class Obtain:
 			args={"amount": "limit", "remove": "page"},
 		)
 		return students
+
+	# 获取新闻
+	def get_menus(self):
+		time_stamp = community.Obtain().get_timestamp()["data"]
+		params = {"TIME": time_stamp}
+		response = self.acquire.send_request(
+			url="https://eduzone.codemao.cn/api/home/eduzone/menus", method="get", params=params
+		)
+		return response.json()
+
+	# 获取banner
+	# TODO type_id参数待扩充
+	def get_banner(self, type_id: int = 101):
+		time_stamp = community.Obtain().get_timestamp()["data"]
+		params = {"TIME": time_stamp, "type_id": type_id}
+		response = self.acquire.send_request(
+			url="https://eduzone.codemao.cn/api/home/banners", method="get", params=params
+		)
+		return response.json()
